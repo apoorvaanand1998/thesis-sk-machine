@@ -1,14 +1,24 @@
 (module
-    (type $node (struct (field $x i32) (field $y i32)))
+    (type $node 
+        (struct (field $left structref)
+                (field $name i32)
+                (field $right structref)))
 
     (func $helper (export "helper") (param $p (ref $node)) (result i32)
         (local.get $p)
-        (struct.get $node $y)
+        (struct.get $node $name)
     )
 
     (func $main (export "main") (result i32)
-        (i32.const 4)
-        (i32.const 2)
+        (ref.null $node)
+        (i32.const 69)
+        (ref.null $node)
+        (struct.new $node)
+        (i32.const 54)
+        (ref.null $node)
+        (i32.const 420)
+        (ref.null $node)
+        (struct.new $node)
         (struct.new $node)
         (call $helper)
     )
