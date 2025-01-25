@@ -1,25 +1,31 @@
 (module
-    (type $node 
-        (struct (field $left structref)
-                (field $name i32)
-                (field $right structref)))
+    (type $appNode
+        (struct (field $left anyref)
+                (field $right anyref)
+                (field $name i32)))
+    
+    ;; i31 represents constants
+    ;; the combinators and primitives are represented using ASCII values
+    ;; that are stored in structs
 
-    (func $helper (export "helper") (param $p (ref $node)) (result i32)
+    (type $comb
+        (struct (field $asciiTag i8)))
+
+    (func $help (export "help") (param $p (ref $appNode)) (result i32)
         (local.get $p)
-        (struct.get $node $name)
+        (struct.get $appNode $left)
+        (ref.cast (ref null $comb))
+        (struct.get_s $comb $asciiTag)
+        (i32.extend8_s)
     )
 
     (func $main (export "main") (result i32)
-        (ref.null $node)
-        (i32.const 69)
-        (ref.null $node)
-        (struct.new $node)
-        (i32.const 54)
-        (ref.null $node)
+        (i32.const 75)
+        (struct.new $comb)
         (i32.const 420)
-        (ref.null $node)
-        (struct.new $node)
-        (struct.new $node)
-        (call $helper)
+        (ref.i31)
+        (i32.const 42)
+        (struct.new $appNode)
+        (call $help)
     )
 )
