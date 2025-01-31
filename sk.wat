@@ -40,6 +40,8 @@
     (func $createLAS (export "createLAS")
      (param $an (ref null $appNode)) (param $treeHeight i32) (result (ref null $stack))
         (local $las (ref null $stack))
+        (local $i i32) ;; stack variable
+        (local $curr (ref null $appNode)) ;; current pointer to node while travelling down tree
 
         (local.get $an)
         (ref.is_null)
@@ -51,11 +53,45 @@
                 (ref.null any)
                 (local.get $treeHeight)
                 (array.new $stack)
-                (local.tee $las)
-                (i32.const 1)
-                (i32.const 69)
-                (ref.i31)
-                (array.set $stack)
+                (local.set $las)
+
+                (i32.const 0)
+                (local.set $i)
+
+                (local.get $an)
+                (local.set $curr)
+                ;; ;; (i32.const 1) ;; index
+                ;; ;; (i32.const 69) ;; thing to change
+                ;; ;; (ref.i31)
+                ;; ;; (array.set $stack) ;; instruction with type of array to change
+                
+                (block $settingI
+                    (loop $setI
+                        (local.get $las)
+                        (local.get $i)
+                        (local.get $curr)
+                        (array.set $stack)
+                        ;; set current node in the las, after which we check
+                
+                        (local.get $curr)
+                        (struct.get $appNode $left)
+                        (ref.test (ref null $appNode))
+                        (i32.eqz)
+                        (br_if $settingI) ;; it was not an appNode end this loop
+
+                        (local.get $i)
+                        (i32.const 1)
+                        (i32.add)
+                        (local.set $i)
+                        ;; ;; increment i
+                        (local.get $curr)
+                        (struct.get $appNode $left)
+                        (ref.cast (ref null $appNode))
+                        (local.set $curr)
+                        (br $setI)
+                    )
+                )
+
                 (local.get $las)
             )
         )
@@ -91,9 +127,13 @@
         (struct.new $appNode)
         (i32.const 3) ;; height of tree
         (call $createLAS)
-        (i32.const 1)
+        (i32.const 2)
         (array.get $stack)
-        (ref.cast (ref null i31))
-        (i31.get_s)
+        (ref.cast (ref null $appNode))
+        (struct.get $appNode $name)
+        ;; (i32.const 1)
+        ;; (array.get $stack)
+        ;; (ref.cast (ref null i31))
+        ;; (i31.get_s)
     )
 )
