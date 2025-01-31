@@ -60,10 +60,6 @@
 
                 (local.get $an)
                 (local.set $curr)
-                ;; ;; (i32.const 1) ;; index
-                ;; ;; (i32.const 69) ;; thing to change
-                ;; ;; (ref.i31)
-                ;; ;; (array.set $stack) ;; instruction with type of array to change
                 
                 (block $settingI
                     (loop $setI
@@ -98,7 +94,7 @@
     )
 
     ;; if left is a combinator or i31, print it
-    (func $help (export "help") (param $p (ref $appNode)) (result i32)
+    (func $cOri31 (export "help") (param $p (ref $appNode)) (result i32)
         (local.get $p)
         (struct.get $appNode $left)
         (ref.cast (ref null $comb))
@@ -131,9 +127,5 @@
         (array.get $stack)
         (ref.cast (ref null $appNode))
         (struct.get $appNode $name)
-        ;; (i32.const 1)
-        ;; (array.get $stack)
-        ;; (ref.cast (ref null i31))
-        ;; (i31.get_s)
     )
 )
