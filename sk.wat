@@ -2,40 +2,18 @@
     (type $appNode
         (struct (field $left anyref)
                 (field $right anyref)
-                (field $name i32)))
+                (field $name i32))) ;; name only for debugging, shall be removed later
     
     ;; i31 represents constants
     ;; the combinators and primitives are represented using ASCII values
     ;; that are stored in structs
 
     (type $comb
-        (struct (field $asciiTag i8)))
+        (struct (field $asciiTag i8))) ;; 8 bits enough to store ascii values
 
     (type $stack
         (array (mut anyref)))
 
-    ;; S 
-    ;; K
-    ;; Y
-    ;; C
-    ;; B
-    ;; I
-    ;; cond
-    ;; true
-    ;; false
-    ;; plus
-    ;; minus
-    ;; times
-    ;; divide
-    ;; intEq
-    ;; intGt
-    ;; intLt
-    ;; intGte
-    ;; intLte
-    ;; and
-    ;; or
-    ;; not
-    
     ;; LAC - Left Ancestor Stack
     (func $createLAS (export "createLAS")
      (param $an (ref null $appNode)) (param $treeHeight i32) (result (ref null $stack))
@@ -82,21 +60,37 @@
                         ;; ;; increment i
                         (local.get $curr)
                         (struct.get $appNode $left)
-                        (ref.cast (ref null $appNode))
+                        (ref.cast (ref null $appNode)) 
                         (local.set $curr)
+                        ;; set curr to left of curr
                         (br $setI)
+                        ;; loop
                     )
                 )
-
                 (local.get $las)
             )
         )
     )
 
-    ;; if left is a combinator or i31, print it
-    (func $cOri31 (export "help") (param $p (ref $appNode)) (result i32)
-        (local.get $p)
+    ;; S, K, Y, C, B, I, cond, true, false, plus, minus, times, divide, intEq, intGt, intLt, intGte, intLte, and, or, not
+    
+    (func $step (export "step") 
+     (param $las (ref null $stack)) (param $n i32) (result i32)
+     ;; function doesn't return a result, just manipulates the references given to it
+     ;; n is the pointing to the index of the las we are currently working with
+        (local $f (ref null $appNode))
+        (local $g (ref null $appNode))
+        (local $x (ref null $appNode))
+
+        ;; get the nth element of the las
+        (local.get $las)
+        (local.get $n)
+        (array.get $stack)
+        ;; take the left and check what kind of combinator it is
+        (ref.cast (ref null $appNode))
         (struct.get $appNode $left)
+        ;; (ref.test (ref null $appNode))
+        ;; (ref.test (ref null $comb))
         (ref.cast (ref null $comb))
         (struct.get_s $comb $asciiTag)
         (i32.extend8_s)
@@ -121,11 +115,5 @@
         (struct.new $appNode)
         (i32.const 4) ;; name 4
         (struct.new $appNode)
-        (i32.const 3) ;; height of tree
-        (call $createLAS)
-        (i32.const 2)
-        (array.get $stack)
-        (ref.cast (ref null $appNode))
-        (struct.get $appNode $name)
     )
 )
