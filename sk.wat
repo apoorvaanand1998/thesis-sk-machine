@@ -85,7 +85,7 @@
         (local $f anyref)
         (local $g anyref)
         (local $x anyref)
-
+        (local $ascii i32) ;; i8 can work here too
         ;; get the nth element of the las
         (local.get $las)
         (local.get $n)
@@ -95,7 +95,7 @@
         (struct.get $appNode $left)
         (ref.cast (ref null $comb))
         (struct.get $comb $asciiTag)
-
+        (local.tee $ascii)
         ;; the nth argument of the combinator will be the right subtree 
         ;; of the object n places behind it on the stack
 
@@ -176,19 +176,19 @@
                 (i32.sub)
             )
             ;; odd indentation to make it seem like a case match
-            (else 
+            (else
             ;; check if it is I
-            ;; (i32.const 73)
-            ;; (i32.eq)
-            ;; (if (result i32)
-            ;; (then 
-            ;;     (i32.const 90)
-            ;; )
-            ;; (else 
-            ;;     (i32.const 100)
-            ;; )
-            ;; )
-            (i32.const 612)
+            (local.get $ascii)
+            (i32.const 73)
+            (i32.eq)
+            (if (result i32)
+            (then 
+                (i32.const 90)
+            )
+            (else 
+                (i32.const 100)
+            )
+            )
             )
             )
         )
@@ -220,17 +220,17 @@
         (local.tee $las)
         (i32.const 2) ;; index of final element of LAS
         (call $step)
-        ;; (local.set $n)
-        ;; (local.get $las)
-        ;; (local.get $n)
-        ;; (call $step)
-        (drop)
+        (local.set $n)
         (local.get $las)
-        (i32.const 1)
-        (array.get $stack)
-        (ref.cast (ref null $appNode))
-        (struct.get $appNode $left)
-        (ref.cast (ref null $comb))
-        (struct.get $comb $asciiTag)
+        (local.get $n)
+        (call $step)
+        ;; (drop)
+        ;; (local.get $las)
+        ;; (i32.const 1)
+        ;; (array.get $stack)
+        ;; (ref.cast (ref null $appNode))
+        ;; (struct.get $appNode $left)
+        ;; (ref.cast (ref null $comb))
+        ;; (struct.get $comb $asciiTag)
     )
 )
