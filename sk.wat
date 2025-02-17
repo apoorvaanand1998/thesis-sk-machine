@@ -16,9 +16,10 @@
     (type $stack
         (array (mut anyref)))
 
-    ;; LAC - Left Ancestor Stack
+    ;; LAS - Left Ancestor Stack
     (func $createLAS (export "createLAS")
      (param $an (ref null $appNode)) (param $treeHeight i32) (result (ref null $stack))
+        ;; treeHeight here is always 1 more than the number of indices needed by the LAS
         (local $las (ref null $stack))
         (local $i i32) ;; stack variable
         (local $curr (ref null $appNode)) ;; current pointer to node while travelling down tree
@@ -80,8 +81,8 @@
     
     (func $step (export "step") 
      (param $las (ref null $stack)) (param $n i32) (result i32)
-     ;; function doesn't return a result, just manipulates the references given to it
-     ;; n is the pointing to the index of the las we are currently working with
+     ;; function returns the next index of the las we should work with
+     ;; n is the index of the las we are currently working with
         (local $f anyref)
         (local $g anyref)
         (local $x anyref)
@@ -233,7 +234,6 @@
 
                 ;; QUESTION - Do you think the arguments of plus will always be reduced?
                 ;; if not - how do you do (+) (reduce f) (reduce g)?
-                ;; for now I am going to assume that it is always reduced
                 ;; Okay, the first argument of plus is always reduced, this is because if
                 ;; it wasn't reduced, it would be further along the LAS and would be reduced first
                 ;; but what about the second argument?
@@ -247,6 +247,72 @@
             )
             )
         )
+        )
+    )
+
+    (func $reduce (export "reduce")
+        (param $an (ref null $appNode)) (param $treeHeight i32) (result i32) 
+        ;; I am going to support a result type of only i32 for now, would work with bools as well
+        ;; later on, perhaps f64 is a better type to encompass everything?
+        ;; treeHeight = max index of LAS + 1
+        (local $las (ref null $stack))
+        (local $curr (ref null $appNode))
+
+        (local.get $an)
+        (local.get $treeHeight)
+        (call $createLAS)
+        (local.set $las)
+        
+        ;; an expression is fully reduced when step returns 0
+        ;; this would mean there is nothing to do, except look at the 
+        ;; hopefully I combinator on the left and return the i32 on the right as result
+        ;; ah no, K x y at the height of 1 is also a fully reduced expression
+        ;; but what I can do there is to reduce it to (I x) instead of just x
+        ;; same thing when it comes to other primOps
+        ;; so that's what Turner meant with the whole (I x) thing!
+
+        ;; now reduce treeHeight to go from 1-indexed to 0-indexed
+        (local.get $treeHeight)
+        (i32.const 1)
+        (i32.sub)
+        (local.tee $treeHeight)
+
+        (block $untilStepFully
+            (i32.eqz)
+            (if (result i32)
+            (then
+                (local.get $las)
+                (i32.const 0)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (local.tee $curr)
+                (struct.get $appNode $left)
+                (ref.cast (ref null $comb))
+                (struct.get $comb $asciiTag)
+                (i32.const 73)
+                (i32.eq)
+                ;; checking if it is an I
+
+                (if (result i32)
+                (then
+                    (local.get $curr)
+                    (struct.get $appNode $right)
+                    ;; hopefully right is an i32
+                )
+                (else
+                    (unreachable)
+                    ;; why the FUCK is it not an I?
+                )
+                )
+            )
+            (else
+                (local.get $las)
+                (local.get $treeHeight)
+                (call $step) ;; this returns 0 if we are done, otherwise redo this with newly set treeHeight
+                (local.tee $treeHeight)
+                (br $untilStepFully)
+            )
+            )
         )
     )
 
@@ -271,7 +337,7 @@
         (struct.new $appNode)
         (i32.const 4) ;; name 4
         (struct.new $appNode)
-        (i32.const 3) ;; tree height
+        (i32.const 3) ;; tree height plus one
         (call $createLAS)
         (local.tee $las)
         (i32.const 2) ;; index of final element of LAS
