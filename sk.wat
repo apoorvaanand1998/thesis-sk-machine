@@ -182,15 +182,71 @@
             (i32.const 73)
             (i32.eq)
             (if (result i32)
-            (then 
-                (i32.const 90)
+            (then
+                (local.get $las)
+                (local.get $n)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $x)
+                
+                ;; I x = x
+                (local.get $las)
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (local.get $x)
+                (struct.set $appNode $left)
+
+                ;; modify las
+                (local.get $las)
+                (local.get $n)
+                (local.get $x)
+                (array.set $stack)
+                ;; now return new index
+                (local.get $n)
             )
-            (else 
+            (else
+            ;; check if it is plus    
+            (local.get $ascii)
+            (i32.const 112)
+            (i32.eq)
+            (if (result i32)
+            (then
+                (local.get $las)
+                (local.get $n)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $f)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $g)
+
+                ;; QUESTION - Do you think the arguments of plus will always be reduced?
+                ;; if not - how do you do (+) (reduce f) (reduce g)?
+                ;; for now I am going to assume that it is always reduced
+                ;; Okay, the first argument of plus is always reduced, this is because if
+                ;; it wasn't reduced, it would be further along the LAS and would be reduced first
+                ;; but what about the second argument?
+                
+            )   
+            (else
                 (i32.const 100)
             )
             )
             )
             )
+            )
+        )
         )
     )
 
@@ -219,6 +275,10 @@
         (call $createLAS)
         (local.tee $las)
         (i32.const 2) ;; index of final element of LAS
+        (call $step)
+        (local.set $n)
+        (local.get $las)
+        (local.get $n)
         (call $step)
         (local.set $n)
         (local.get $las)
