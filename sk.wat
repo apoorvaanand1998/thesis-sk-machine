@@ -16,6 +16,39 @@
     (type $stack
         (array (mut anyref)))
 
+    (func $leftSpineLength (export "leftSpineLength")
+     (param $an (ref null $appNode)) (result i32)
+        ;; how many times can you keep going left?
+        ;; compatible with createLAS (i.e. if you can go left once, it returns 2)
+        (local $n i32)
+        (i32.const 1)
+        (local.set $n)
+
+        (loop $keepLeft (result i32)
+            (local.get $an)
+            (struct.get $appNode $left)
+            (ref.test (ref null $appNode))
+            (if
+            (then
+                (local.get $n)
+                (i32.const 1)
+                (i32.add)
+                (local.set $n) ;; increase n by 1
+
+                (local.get $an)
+                (struct.get $appNode $left)
+                (ref.cast (ref null $appNode))
+                (local.set $an)
+                (br $keepLeft)
+            )
+            (else
+                (nop) ;; just fall out of the loop block
+            )
+            )
+            (local.get $n)
+        )
+    )
+
     ;; LAS - Left Ancestor Stack
     (func $createLAS (export "createLAS")
      (param $an (ref null $appNode)) (param $treeHeight i32) (result (ref null $stack))
@@ -96,7 +129,7 @@
         (struct.get $appNode $left)
         (ref.cast (ref null $comb))
         (struct.get $comb $asciiTag)
-        (local.tee $ascii)
+        (local.set $ascii)
         ;; the nth argument of the combinator will be the right subtree 
         ;; of the object n places behind it on the stack
 
@@ -106,8 +139,9 @@
         ;; connect newly created struct to the previous structs
         ;; return new index of las to work with (and also modify las)
 
-        (block $combCase (param i32) (result i32)
+        (block $combCase (result i32)
             ;; check if it's C
+            (local.get $ascii)
             (i32.const 67)
             (i32.eq)
             (if (result i32)
@@ -196,7 +230,7 @@
                 (local.get $n)
                 (i32.const 1)
                 (i32.sub)
-                (array.get $stack)
+                (array.get $stack) ;; this cannot gave out-of-bounds because the case with n <= 1 is (hopefully) taken care of by reduce
                 (ref.cast (ref null $appNode))
                 (local.get $x)
                 (struct.set $appNode $left)
@@ -238,9 +272,84 @@
                 ;; it wasn't reduced, it would be further along the LAS and would be reduced first
                 ;; but what about the second argument?
                 
-            )   
+                (local.get $f)
+                (call $i31OrReduce)
+                (local.get $g)
+                (call $i31OrReduce)
+                (i32.add)
+                (ref.i31)
+                (call $mkI)
+                (local.set $x)
+                
+                ;; changed struct connections to point to new struct
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (i32.const -1)
+                (i32.gt_s)
+                (if
+                (then
+                    (local.get $las)
+                    (local.get $n)
+                    (i32.const 2)
+                    (i32.sub)
+                    (array.get $stack)
+                    (ref.cast (ref null $appNode))
+                    (local.get $x)
+                    (struct.set $appNode $right)
+                )
+                (else
+                    (nop)
+                )
+                )
+                ;; modify las
+                (local.get $las)
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+                (local.get $x)
+                (array.set $stack)
+                ;; return new index
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+            )
             (else
-                (i32.const 100)
+            ;; check if it is S
+            (local.get $ascii)
+            (i32.const 83)
+            (i32.eq)
+            (if (result i32)
+            (then
+                (local.get $las)
+                (local.get $n)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $f)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $g)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $x)
+            )
+            (else
+                (unreachable)
+            )
+            )
             )
             )
             )
@@ -250,6 +359,45 @@
         )
     )
 
+    (func $i31OrReduce (export "i31OrReduce")
+     ;; looks at the anyref given to it and if it's an i31, converts it to i32
+     ;; otherwise assumes it is an appNode and calls reduce on it
+     (param $x anyref) (result i32)
+        (local $temp (ref null $appNode))
+        (local $n i32)
+
+        (local.get $x)
+        (ref.test i31ref)
+        (if (result i32)
+        (then
+            (local.get $x)
+            (ref.cast i31ref)
+            (i31.get_s)
+        )
+        (else
+            (local.get $x)
+            (ref.cast (ref null $appNode))
+            (local.tee $temp)
+            (call $leftSpineLength)
+            (local.set $n)
+            (local.get $temp)
+            (local.get $n)
+            (call $reduce)
+        )
+        )
+    )
+
+    (func $mkI (export "mkI")
+     ;; helper function that puts things into an appNode with the left being the I combinator
+     (param $x anyref) (result (ref null $appNode))
+
+        (i32.const 73)
+        (struct.new $comb)
+        (local.get $x)
+        (i32.const 42) ;; same default name
+        (struct.new $appNode)
+    )
+
     (func $reduce (export "reduce")
         (param $an (ref null $appNode)) (param $treeHeight i32) (result i32) 
         ;; I am going to support a result type of only i32 for now, would work with bools as well
@@ -257,6 +405,7 @@
         ;; treeHeight = max index of LAS + 1
         (local $las (ref null $stack))
         (local $curr (ref null $appNode))
+        (local $result i32)
 
         (local.get $an)
         (local.get $treeHeight)
@@ -269,17 +418,18 @@
         ;; ah no, K x y at the height of 1 is also a fully reduced expression
         ;; but what I can do there is to reduce it to (I x) instead of just x
         ;; same thing when it comes to other primOps
-        ;; so that's what Turner meant with the whole (I x) thing!
+        ;; so that's what Turner meant with the whole (I x) thing! (look at func mkI)
 
         ;; now reduce treeHeight to go from 1-indexed to 0-indexed
         (local.get $treeHeight)
         (i32.const 1)
         (i32.sub)
-        (local.tee $treeHeight)
-
-        (block $untilStepFully
+        (local.set $treeHeight)
+        
+        (loop $untilStepFully
+            (local.get $treeHeight)
             (i32.eqz)
-            (if (result i32)
+            (if
             (then
                 (local.get $las)
                 (i32.const 0)
@@ -293,11 +443,13 @@
                 (i32.eq)
                 ;; checking if it is an I
 
-                (if (result i32)
+                (if
                 (then
                     (local.get $curr)
                     (struct.get $appNode $right)
-                    ;; hopefully right is an i32
+                    (ref.cast i31ref)
+                    (i31.get_s)
+                    (local.set $result)
                 )
                 (else
                     (unreachable)
@@ -309,16 +461,19 @@
                 (local.get $las)
                 (local.get $treeHeight)
                 (call $step) ;; this returns 0 if we are done, otherwise redo this with newly set treeHeight
-                (local.tee $treeHeight)
+                (local.set $treeHeight)
                 (br $untilStepFully)
             )
             )
         )
+        (local.get $result)
     )
 
     (func $main (export "main") (result i32)
-        (local $las (ref null $stack))
         (local $n i32)
+        (local $an (ref null $appNode))
+        (local $s (ref null $stack))
+
         (i32.const 67) ;; C
         (struct.new $comb)
         (i32.const 73) ;; I
@@ -337,26 +492,59 @@
         (struct.new $appNode)
         (i32.const 4) ;; name 4
         (struct.new $appNode)
-        (i32.const 3) ;; tree height plus one
-        (call $createLAS)
-        (local.tee $las)
-        (i32.const 2) ;; index of final element of LAS
-        (call $step)
+        (local.tee $an)
+        (call $leftSpineLength)
         (local.set $n)
-        (local.get $las)
+        (local.get $an)
         (local.get $n)
-        (call $step)
-        (local.set $n)
-        (local.get $las)
-        (local.get $n)
-        (call $step)
+        ;; (call $createLAS)
+        ;; (local.tee $s)
+        ;; (i32.const 2)
+        ;; (call $step)
         ;; (drop)
-        ;; (local.get $las)
+        ;; (local.get $s)
+        ;; (i32.const 1)
+        ;; (call $step)
+        ;; (drop)
+        ;; (local.get $s)
         ;; (i32.const 1)
         ;; (array.get $stack)
         ;; (ref.cast (ref null $appNode))
         ;; (struct.get $appNode $left)
         ;; (ref.cast (ref null $comb))
         ;; (struct.get $comb $asciiTag)
+        ;; (drop)
+        ;; (local.get $s)
+        ;; (i32.const 1)
+        ;; (call $step)
+        ;; (drop)
+        ;; (local.get $s)
+        ;; (i32.const 0)
+        ;; (array.get $stack)
+        ;; (ref.cast (ref null $appNode))
+        ;; (struct.get $appNode $left)
+        ;; (ref.cast (ref null $comb))
+        ;; (struct.get $comb $asciiTag)
+        (call $reduce)
+        (drop)
+        (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
+                                                  (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
+                                                                                            (ref.i31 (i32.const 1))
+                                                                                            (i32.const 1))
+                                                                       (ref.i31 (i32.const 2))
+                                                                       (i32.const 2))
+                                                  (i32.const 3)) 
+                             (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
+                                                                       (ref.i31 (i32.const 3))
+                                                                       (i32.const 42))
+                                                  (ref.i31 (i32.const 4))
+                                                  (i32.const 42))
+                             (i32.const 42))
+        (local.tee $an)
+        (call $leftSpineLength)
+        (local.set $n)
+        (local.get $an)
+        (local.get $n)
+        (call $reduce)
     )
 )
