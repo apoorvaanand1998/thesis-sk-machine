@@ -399,7 +399,6 @@
                 (local.get $n)
                 (i32.const 1)
                 (i32.sub)
-
             )
             (else
             ;; check if it is K
@@ -463,7 +462,82 @@
                 (i32.sub)
             )
             (else
+            ;; check if it is B
+            (local.get $ascii)
+            (i32.const 66)
+            (i32.eq)
+            (if (result i32)
+            (then
+                (local.get $las)
+                (local.get $n)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $f)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $g)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (struct.get $appNode $right)
+                (local.set $x)
+
+                (local.get $f)
+                (local.get $g)
+                (local.get $x)
+                (i32.const 42)
+                (struct.new $appNode)
+                (local.tee $g)
+                (i32.const 42)
+                (struct.new $appNode)
+                (local.set $x)
+                
+                ;; doing things similar to C comb
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (local.get $f)
+                (struct.set $appNode $left)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (array.get $stack)
+                (ref.cast (ref null $appNode))
+                (local.get $g)
+                (struct.set $appNode $right)
+
+                ;; modifying las
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (local.get $x)
+                (array.set $stack)
+
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+            )
+            (else
                 (unreachable)
+            )
+            )
             )
             )
             )
