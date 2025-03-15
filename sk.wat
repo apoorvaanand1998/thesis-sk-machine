@@ -722,6 +722,33 @@
     )
 
     (func $main (export "main") (result i32)
+        (local $n i32)
+        (local $an (ref null $appNode))
+        ;; (C I 2 (plus 1))
+        (i32.const 67)
+        (ref.i31) ;; C
+        (i32.const 73)
+        (ref.i31) ;; I
+        (i32.const 0)
+        (struct.new $appNode)
+        (i32.const 2)
+        (ref.i31) ;; 2
+        (i32.const 1)
+        (struct.new $appNode)
+        (i32.const 112)
+        (ref.i31) ;; +
+        (i32.const 1)
+        (ref.i31) ;; 1
+        (i32.const 2)
+        (struct.new $appNode)
+        (i32.const 3)
+        (struct.new $appNode)
+        (local.tee $an)
+        (call $leftSpineLength)
+        (local.set $n)
+        (local.get $an)
+        (local.get $n)
+        (call $reduce)
         ;; (local $n i32)
         ;; (local $an (ref null $appNode))
         ;; (local $s (ref null $stack))
