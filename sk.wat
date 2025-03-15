@@ -4,23 +4,13 @@
                 (field $right (mut anyref))
                 (field $name i32))) ;; name only for debugging, shall be removed later
     
-    ;; ;; i31 represents constants
-    ;; ;; the combinators and primitives are represented using ASCII values
-    ;; ;; that are stored in structs
-
-    ;; (type $comb
-    ;;     (struct (field $asciiTag i32))) ;; 8 bits enough to store ascii values
-    ;;                                     ;; making it 32 bit rn for convenience
-    ;;                                     ;; TODO: Change to 8-bit and create function i8 -> i32
-
     ;; Based on Marco's suggestion, refer to combinators and primitives with i31s too
     ;; i31s on the left node refer to prims and combs
     ;; i31s on the right node refer to constants
     ;; the explicit structs are the appNodes themselves
-    ;; is there a benefit to changing stack to appNodes vs anyrefs?
 
     (type $stack
-        (array (mut anyref)))
+        (array (mut (ref null appNode))))
 
     (func $leftSpineLength (export "leftSpineLength")
      (param $an (ref null $appNode)) (result i32)
@@ -70,7 +60,7 @@
                 (ref.null $stack)
             )
             (else
-                (ref.null any)
+                (ref.null $appNode)
                 (local.get $treeHeight)
                 (array.new $stack)
                 (local.set $las)
@@ -127,7 +117,6 @@
         (local.get $n)
         (array.get $stack)
         ;; take the left and check what kind of combinator it is
-        (ref.cast (ref null $appNode))
         (struct.get $appNode $left)
         (ref.cast i31ref)
         (i31.get_s)
@@ -152,7 +141,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $f)
 
@@ -161,7 +149,6 @@
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $g)
 
@@ -170,7 +157,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $x)
 
@@ -183,7 +169,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode)) ;; 1st argument of struct.set coming up
                 (local.get $f)
                 (local.get $x)
                 (i32.const 42) ;; unnecessary name - will possibly use for debugging
@@ -196,7 +181,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode)) ;; 1st argument of struct.set coming up
                 (local.get $g)
                 (struct.set $appNode $right)
                 ;; both left and right have been set
@@ -223,7 +207,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $x)
                 
@@ -233,7 +216,6 @@
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack) ;; this cannot gave out-of-bounds because the case with n <= 1 is (hopefully) taken care of by reduce
-                (ref.cast (ref null $appNode))
                 (local.get $x)
                 (struct.set $appNode $left)
 
@@ -255,7 +237,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $f)
 
@@ -264,7 +245,6 @@
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $g)
 
@@ -296,7 +276,6 @@
                     (i32.const 2)
                     (i32.sub)
                     (array.get $stack)
-                    (ref.cast (ref null $appNode))
                     (local.get $x)
                     (struct.set $appNode $right)
                 )
@@ -326,7 +305,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $f)
 
@@ -335,7 +313,6 @@
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $g)
 
@@ -344,7 +321,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $x)
                 
@@ -373,7 +349,6 @@
                     (i32.const 3)
                     (i32.sub)
                     (array.get $stack)
-                    (ref.cast (ref null $appNode))
                     (local.get $x)
                     (struct.set $appNode $right)
                 )
@@ -421,7 +396,6 @@
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $g)
 
@@ -442,7 +416,6 @@
                     (i32.const 2)
                     (i32.sub)
                     (array.get $stack)
-                    (ref.cast (ref null $appNode))
                     (local.get $f)
                     (struct.set $appNode $right)
                 )
@@ -473,7 +446,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $f)
 
@@ -482,7 +454,6 @@
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $g)
 
@@ -491,7 +462,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $x)
 
@@ -511,7 +481,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (local.get $f)
                 (struct.set $appNode $left)
 
@@ -520,7 +489,6 @@
                 (i32.const 2)
                 (i32.sub)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (local.get $g)
                 (struct.set $appNode $right)
 
@@ -547,7 +515,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $f)
 
@@ -571,7 +538,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (local.get $x)
                 (ref.cast (ref null $appNode))
                 (struct.get $appNode $left)
@@ -579,7 +545,6 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (local.get $x)
                 (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
@@ -684,7 +649,6 @@
                 (local.get $las)
                 (i32.const 0)
                 (array.get $stack)
-                (ref.cast (ref null $appNode))
                 (local.tee $curr)
                 (struct.get $appNode $left)
                 ;; (ref.cast (ref null $comb))
