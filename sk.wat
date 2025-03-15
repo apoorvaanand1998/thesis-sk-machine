@@ -10,7 +10,7 @@
     ;; the explicit structs are the appNodes themselves
 
     (type $stack
-        (array (mut (ref null appNode))))
+        (array (mut (ref null $appNode))))
 
     (func $leftSpineLength (export "leftSpineLength")
      (param $an (ref null $appNode)) (result i32)
@@ -190,6 +190,7 @@
                 (i32.const 1)
                 (i32.sub)
                 (local.get $f)
+                (ref.cast (ref null $appNode))
                 (array.set $stack)
                 ;; las has been modified
                 (local.get $n)
@@ -223,6 +224,7 @@
                 (local.get $las)
                 (local.get $n)
                 (local.get $x)
+                (ref.cast (ref null $appNode))
                 (array.set $stack)
                 ;; now return new index
                 (local.get $n)
@@ -289,6 +291,7 @@
                 (i32.const 1)
                 (i32.sub)
                 (local.get $x)
+                (ref.cast (ref null $appNode))
                 (array.set $stack)
                 ;; return new index
                 (local.get $n)
@@ -498,6 +501,7 @@
                 (i32.const 2)
                 (i32.sub)
                 (local.get $x)
+                (ref.cast (ref null $appNode))
                 (array.set $stack)
 
                 (local.get $n)
@@ -733,81 +737,5 @@
         (local.get $an)
         (local.get $n)
         (call $reduce)
-        ;; (local $n i32)
-        ;; (local $an (ref null $appNode))
-        ;; (local $s (ref null $stack))
-
-        ;; (i32.const 67) ;; C
-        ;; (struct.new $comb)
-        ;; (i32.const 73) ;; I
-        ;; (struct.new $comb)
-        ;; (i32.const 1) ;; name 1
-        ;; (struct.new $appNode)
-        ;; (i32.const 2) ;; constant 2
-        ;; (ref.i31)
-        ;; (i32.const 2) ;; name 2
-        ;; (struct.new $appNode)
-        ;; (i32.const 112) ;; plus
-        ;; (struct.new $comb)
-        ;; (i32.const 1) ;; constant 1
-        ;; (ref.i31)
-        ;; (i32.const 3) ;; name 3
-        ;; (struct.new $appNode)
-        ;; (i32.const 4) ;; name 4
-        ;; (struct.new $appNode)
-        ;; (local.tee $an)
-        ;; (call $leftSpineLength)
-        ;; (local.set $n)
-        ;; (local.get $an)
-        ;; (local.get $n)
-        ;; (call $createLAS)
-        ;; (local.tee $s)
-        ;; (i32.const 2)
-        ;; (call $step)
-        ;; (drop)
-        ;; (local.get $s)
-        ;; (i32.const 1)
-        ;; (call $step)
-        ;; (drop)
-        ;; (local.get $s)
-        ;; (i32.const 1)
-        ;; (array.get $stack)
-        ;; (ref.cast (ref null $appNode))
-        ;; (struct.get $appNode $left)
-        ;; (ref.cast (ref null $comb))
-        ;; (struct.get $comb $asciiTag)
-        ;; (drop)
-        ;; (local.get $s)
-        ;; (i32.const 1)
-        ;; (call $step)
-        ;; (drop)
-        ;; (local.get $s)
-        ;; (i32.const 0)
-        ;; (array.get $stack)
-        ;; (ref.cast (ref null $appNode))
-        ;; (struct.get $appNode $left)
-        ;; (ref.cast (ref null $comb))
-        ;; (struct.get $comb $asciiTag)
-        ;; (call $reduce)
-        ;; (drop)
-        ;; (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
-        ;;                                           (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
-        ;;                                                                                     (ref.i31 (i32.const 1))
-        ;;                                                                                     (i32.const 1))
-        ;;                                                                (ref.i31 (i32.const 2))
-        ;;                                                                (i32.const 2))
-        ;;                                           (i32.const 3)) 
-        ;;                      (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
-        ;;                                                                (ref.i31 (i32.const 3))
-        ;;                                                                (i32.const 42))
-        ;;                                           (ref.i31 (i32.const 4))
-        ;;                                           (i32.const 42))
-        ;;                      (i32.const 42))
-        ;; (local.tee $an)
-        ;; (call $leftSpineLength)
-        ;; (local.set $n)
-        ;; (local.get $an)
-        ;; (local.get $n)
-        ;; (call $reduce)
     )
 )
