@@ -53,10 +53,9 @@
     (func $createLAS (export "createLAS")
      (param $an (ref null $appNode)) (param $treeHeight i32) (result (ref null $stack))
         ;; treeHeight here is always 1 more than the number of indices needed by the LAS
+        ;; $an will refer to the current pointer, previously used another variable called $curr
         (local $las (ref null $stack))
         (local $i i32) ;; stack variable
-        (local $curr (ref null $appNode)) ;; current pointer to node while travelling down tree
-                                          ;; probably don't need this. TODO: Reuse $an as $curr
 
         (local.get $an)
         (ref.is_null)
@@ -72,19 +71,16 @@
 
                 (i32.const 0)
                 (local.set $i)
-
-                (local.get $an)
-                (local.set $curr)
                 
                 (block $settingI
                     (loop $setI
                         (local.get $las)
                         (local.get $i)
-                        (local.get $curr)
+                        (local.get $an)
                         (array.set $stack)
                         ;; set current node in the las, after which we check
                 
-                        (local.get $curr)
+                        (local.get $an)
                         (struct.get $appNode $left)
                         (ref.test (ref null $appNode))
                         (i32.eqz)
@@ -95,10 +91,10 @@
                         (i32.add)
                         (local.set $i)
                         ;; ;; increment i
-                        (local.get $curr)
+                        (local.get $an)
                         (struct.get $appNode $left)
                         (ref.cast (ref null $appNode)) 
-                        (local.set $curr)
+                        (local.set $an)
                         ;; set curr to left of curr
                         (br $setI)
                         ;; loop
@@ -588,7 +584,8 @@
                 (local.get $n) ;; just return the index
             )
             (else
-                (unreachable)
+            (local.get $ascii)
+            (unreachable)
             )
             )
             )
