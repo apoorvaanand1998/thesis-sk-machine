@@ -4,14 +4,20 @@
                 (field $right (mut anyref))
                 (field $name i32))) ;; name only for debugging, shall be removed later
     
-    ;; i31 represents constants
-    ;; the combinators and primitives are represented using ASCII values
-    ;; that are stored in structs
+    ;; ;; i31 represents constants
+    ;; ;; the combinators and primitives are represented using ASCII values
+    ;; ;; that are stored in structs
 
-    (type $comb
-        (struct (field $asciiTag i32))) ;; 8 bits enough to store ascii values
-                                        ;; making it 32 bit rn for convenience
-                                        ;; TODO: Change to 8-bit and create function i8 -> i32
+    ;; (type $comb
+    ;;     (struct (field $asciiTag i32))) ;; 8 bits enough to store ascii values
+    ;;                                     ;; making it 32 bit rn for convenience
+    ;;                                     ;; TODO: Change to 8-bit and create function i8 -> i32
+
+    ;; Based on Marco's suggestion, refer to combinators and primitives with i31s too
+    ;; i31s on the left node refer to prims and combs
+    ;; i31s on the right node refer to constants
+    ;; the explicit structs are the appNodes themselves
+    ;; is there a benefit to changing stack to appNodes vs anyrefs?
 
     (type $stack
         (array (mut anyref)))
@@ -123,8 +129,8 @@
         ;; take the left and check what kind of combinator it is
         (ref.cast (ref null $appNode))
         (struct.get $appNode $left)
-        (ref.cast (ref null $comb))
-        (struct.get $comb $asciiTag)
+        (ref.cast i31ref)
+        (i31.get_s)
         (local.set $ascii)
         ;; the nth argument of the combinator will be the right subtree 
         ;; of the object n places behind it on the stack
@@ -636,7 +642,7 @@
      (param $x anyref) (result (ref null $appNode))
 
         (i32.const 73)
-        (struct.new $comb)
+        (ref.i31)
         (local.get $x)
         (i32.const 42) ;; same default name
         (struct.new $appNode)
@@ -681,8 +687,10 @@
                 (ref.cast (ref null $appNode))
                 (local.tee $curr)
                 (struct.get $appNode $left)
-                (ref.cast (ref null $comb))
-                (struct.get $comb $asciiTag)
+                ;; (ref.cast (ref null $comb))
+                ;; (struct.get $comb $asciiTag)
+                (ref.cast i31ref)
+                (i31.get_s)
                 (i32.const 73)
                 (i32.eq)
                 ;; checking if it is an I
@@ -714,33 +722,33 @@
     )
 
     (func $main (export "main") (result i32)
-        (local $n i32)
-        (local $an (ref null $appNode))
-        (local $s (ref null $stack))
+        ;; (local $n i32)
+        ;; (local $an (ref null $appNode))
+        ;; (local $s (ref null $stack))
 
-        (i32.const 67) ;; C
-        (struct.new $comb)
-        (i32.const 73) ;; I
-        (struct.new $comb)
-        (i32.const 1) ;; name 1
-        (struct.new $appNode)
-        (i32.const 2) ;; constant 2
-        (ref.i31)
-        (i32.const 2) ;; name 2
-        (struct.new $appNode)
-        (i32.const 112) ;; plus
-        (struct.new $comb)
-        (i32.const 1) ;; constant 1
-        (ref.i31)
-        (i32.const 3) ;; name 3
-        (struct.new $appNode)
-        (i32.const 4) ;; name 4
-        (struct.new $appNode)
-        (local.tee $an)
-        (call $leftSpineLength)
-        (local.set $n)
-        (local.get $an)
-        (local.get $n)
+        ;; (i32.const 67) ;; C
+        ;; (struct.new $comb)
+        ;; (i32.const 73) ;; I
+        ;; (struct.new $comb)
+        ;; (i32.const 1) ;; name 1
+        ;; (struct.new $appNode)
+        ;; (i32.const 2) ;; constant 2
+        ;; (ref.i31)
+        ;; (i32.const 2) ;; name 2
+        ;; (struct.new $appNode)
+        ;; (i32.const 112) ;; plus
+        ;; (struct.new $comb)
+        ;; (i32.const 1) ;; constant 1
+        ;; (ref.i31)
+        ;; (i32.const 3) ;; name 3
+        ;; (struct.new $appNode)
+        ;; (i32.const 4) ;; name 4
+        ;; (struct.new $appNode)
+        ;; (local.tee $an)
+        ;; (call $leftSpineLength)
+        ;; (local.set $n)
+        ;; (local.get $an)
+        ;; (local.get $n)
         ;; (call $createLAS)
         ;; (local.tee $s)
         ;; (i32.const 2)
@@ -769,26 +777,26 @@
         ;; (struct.get $appNode $left)
         ;; (ref.cast (ref null $comb))
         ;; (struct.get $comb $asciiTag)
-        (call $reduce)
-        (drop)
-        (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
-                                                  (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
-                                                                                            (ref.i31 (i32.const 1))
-                                                                                            (i32.const 1))
-                                                                       (ref.i31 (i32.const 2))
-                                                                       (i32.const 2))
-                                                  (i32.const 3)) 
-                             (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
-                                                                       (ref.i31 (i32.const 3))
-                                                                       (i32.const 42))
-                                                  (ref.i31 (i32.const 4))
-                                                  (i32.const 42))
-                             (i32.const 42))
-        (local.tee $an)
-        (call $leftSpineLength)
-        (local.set $n)
-        (local.get $an)
-        (local.get $n)
-        (call $reduce)
+        ;; (call $reduce)
+        ;; (drop)
+        ;; (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
+        ;;                                           (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
+        ;;                                                                                     (ref.i31 (i32.const 1))
+        ;;                                                                                     (i32.const 1))
+        ;;                                                                (ref.i31 (i32.const 2))
+        ;;                                                                (i32.const 2))
+        ;;                                           (i32.const 3)) 
+        ;;                      (struct.new $appNode (struct.new $appNode (struct.new $comb (i32.const 112))
+        ;;                                                                (ref.i31 (i32.const 3))
+        ;;                                                                (i32.const 42))
+        ;;                                           (ref.i31 (i32.const 4))
+        ;;                                           (i32.const 42))
+        ;;                      (i32.const 42))
+        ;; (local.tee $an)
+        ;; (call $leftSpineLength)
+        ;; (local.set $n)
+        ;; (local.get $an)
+        ;; (local.get $n)
+        ;; (call $reduce)
     )
 )
