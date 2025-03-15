@@ -519,43 +519,23 @@
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
+                (local.tee $x)
+                (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
                 (local.set $f)
 
+                (local.get $las)
+                (local.get $n)
+                (array.get $stack)
                 (local.get $f)
-                (local.get $f) 
-                ;; this is the temp right node I am setting
-                ;; it needs to be a ref to this appNode itself
-                ;; which will be set a little bit below
-                (i32.const 42)
-                (struct.new $appNode)
-                (local.tee $x)
-                ;; now setting it right ;)
-                (ref.cast (ref null $appNode))
-                (local.get $x)
-                (struct.set $appNode $right)
-                ;; x now holds a self-referential node
+                (struct.set $appNode $left)
 
-                ;; again similar to B, C combinator
-                ;; TODO: Check if other combinators can be written this way?
-                ;; I think you could probably do it the "if" way as well
                 (local.get $las)
                 (local.get $n)
                 (array.get $stack)
                 (local.get $x)
-                (ref.cast (ref null $appNode))
-                (struct.get $appNode $left)
-                (struct.set $appNode $left) ;; set las[n].left = x.left, similarly
-                (local.get $las)
-                (local.get $n)
-                (array.get $stack)
-                (local.get $x)
-                (ref.cast (ref null $appNode))
-                (struct.get $appNode $right)
                 (struct.set $appNode $right)
-                ;; didn't need to do "if" check
-                ;; "newly" created struct already correctly connected to previous structs
-                ;; not necessary to modify las either
+                
                 (local.get $n) ;; just return the index
             )
             (else
