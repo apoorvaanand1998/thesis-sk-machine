@@ -218,8 +218,20 @@
                 (i32.sub)
                 (array.get $stack) ;; this cannot gave out-of-bounds because the case with n <= 1 is (hopefully) taken care of by reduce
                 (local.get $x)
-                (struct.set $appNode $left)
-
+                (struct.set $appNode $left) ;; prove that only left is required, the right case will never happen
+                ;; Informal proof?
+                ;; Everything on the left node has to eventually reduce to a primitive operation
+                ;; Everything on the right node has to eventually reduce to a primitive value
+                ;; This only reduces the I's on the left nodes
+                ;; Any I's that appear on the right node are left alone
+                ;; Why is that okay?
+                ;; Assuming that after all reductions everything on the left has reduced to a primitive operation
+                ;; We will now have to make sure and reduce the thing on the right node (the argument of the primitive operation)
+                ;; because primitive operations require their arguments to be fully reduced
+                ;; SO, even if the right nodes are not reduced
+                ;; Eventually, they will have to be (and when that happens, they will be treated as left nodes in that new LAS created)
+                ;; QED? :D
+                
                 ;; modify las
                 (local.get $las)
                 (local.get $n)
