@@ -377,48 +377,25 @@
                 (array.get $stack)
                 (ref.cast (ref null $appNode))
                 (struct.get $appNode $right)
-                (local.set $f)
+                (local.set $x)
 
                 (local.get $las)
                 (local.get $n)
                 (i32.const 1)
                 (i32.sub)
                 (array.get $stack)
-                (struct.get $appNode $right)
-                (local.set $g)
+                (i32.const 73)
+                (ref.i31)
+                (struct.set $appNode $left)
 
-                (local.get $f)
-                (call $mkI)
-                (local.set $f)
-
-                ;; connect newly created struct to the previous struct
-                (local.get $n)
-                (i32.const 2)
-                (i32.sub)
-                (i32.const -1)
-                (i32.gt_s)
-                (if
-                (then
-                    (local.get $las)
-                    (local.get $n)
-                    (i32.const 2)
-                    (i32.sub)
-                    (array.get $stack)
-                    (local.get $f)
-                    (struct.set $appNode $right)
-                )
-                (else
-                    (nop)
-                )
-                )
-                ;; modify las
                 (local.get $las)
                 (local.get $n)
                 (i32.const 1)
                 (i32.sub)
-                (local.get $f)
-                (ref.cast (ref null $appNode))
-                (array.set $stack)
+                (array.get $stack)
+                (local.get $x)
+                (struct.set $appNode $right)
+
                 ;; index return
                 (local.get $n)
                 (i32.const 1)
