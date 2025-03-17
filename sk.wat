@@ -293,7 +293,7 @@
                 (local.get $x)
                 (struct.set $appNode $left)
                 ;; modify las
-                
+
                 ;; return new index
                 (local.get $n)
                 (i32.const 1)
@@ -328,38 +328,29 @@
                 (struct.get $appNode $right)
                 (local.set $x)
                 
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (array.get $stack)
                 (local.get $f)
                 (local.get $x)
                 (i32.const 42)
                 (struct.new $appNode)
                 (local.tee $f)
+                (struct.set $appNode $left)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 2)
+                (i32.sub)
+                (array.get $stack)
                 (local.get $g)
                 (local.get $x)
                 (i32.const 42)
                 (struct.new $appNode)
-                (i32.const 42)
-                (struct.new $appNode)
-                (local.set $x)
+                (struct.set $appNode $right)
 
-                (local.get $n)
-                (i32.const 3)
-                (i32.sub)
-                (i32.const -1)
-                (i32.gt_s)
-                (if
-                (then
-                    (local.get $las)
-                    (local.get $n)
-                    (i32.const 3)
-                    (i32.sub)
-                    (array.get $stack)
-                    (local.get $x)
-                    (struct.set $appNode $right)
-                )
-                (else
-                    (nop)
-                )
-                )
                 ;; modify las
                 (local.get $las)
                 (local.get $n)
@@ -368,14 +359,7 @@
                 (local.get $f)
                 (ref.cast (ref null $appNode))
                 (array.set $stack)
-                ;; two modifications to las, first one above, second one below
-                (local.get $las)
-                (local.get $n)
-                (i32.const 2)
-                (i32.sub)
-                (local.get $x)
-                (ref.cast (ref null $appNode))
-                (array.set $stack)
+
                 ;; modified las, now return index
                 (local.get $n)
                 (i32.const 1)
