@@ -231,7 +231,7 @@
                 ;; SO, even if the right nodes are not reduced
                 ;; Eventually, they will have to be (and when that happens, they will be treated as left nodes in that new LAS created)
                 ;; QED? :D
-                
+
                 ;; modify las
                 (local.get $las)
                 (local.get $n)
@@ -274,37 +274,26 @@
                 (call $i31OrReduce)
                 (i32.add)
                 (ref.i31)
-                (call $mkI)
                 (local.set $x)
-                
-                ;; changed struct connections to point to new struct
-                (local.get $n)
-                (i32.const 2)
-                (i32.sub)
-                (i32.const -1)
-                (i32.gt_s)
-                (if
-                (then
-                    (local.get $las)
-                    (local.get $n)
-                    (i32.const 2)
-                    (i32.sub)
-                    (array.get $stack)
-                    (local.get $x)
-                    (struct.set $appNode $right)
-                )
-                (else
-                    (nop)
-                )
-                )
-                ;; modify las
+
                 (local.get $las)
                 (local.get $n)
                 (i32.const 1)
                 (i32.sub)
+                (array.get $stack)
+                (i32.const 73)
+                (ref.i31)
+                (struct.set $appNode $left)
+
+                (local.get $las)
+                (local.get $n)
+                (i32.const 1)
+                (i32.sub)
+                (array.get $stack)
                 (local.get $x)
-                (ref.cast (ref null $appNode))
-                (array.set $stack)
+                (struct.set $appNode $left)
+                ;; modify las
+                
                 ;; return new index
                 (local.get $n)
                 (i32.const 1)
