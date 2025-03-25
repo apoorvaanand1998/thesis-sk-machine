@@ -11,7 +11,7 @@
 
         (local.get $an)
         (local.tee $x)
-        (ref.cast (ref null $appNode))
+        ;; (ref.cast (ref null $appNode))
     )
 
     (func $main (export "main")

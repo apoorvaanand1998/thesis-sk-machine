@@ -1,3 +1,5 @@
+{-#LANGUAGE DataKinds #-}
+
 module WAT where
 import Data.List (intercalate)
 
