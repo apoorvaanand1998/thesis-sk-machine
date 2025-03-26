@@ -9,6 +9,8 @@ data Instr = I32Const Int
            | LocalSet Ident
            | ArrayGet Ident
            | StructGet Ident Ident
+           | RefCastI31
+           | I31Get
            | Nop
            deriving Show
 
@@ -19,6 +21,8 @@ toWat (LocalGet i)    = "(local.get " ++ show i ++ ")"
 toWat (LocalSet i)    = "(local.set " ++ show i ++ ")"
 toWat (ArrayGet i)    = "(array.get " ++ show i ++ ")"
 toWat (StructGet t f) = "(struct.get " ++ show t ++ " " ++ show f ++ ")"
+toWat RefCastI31      = "(ref.cast i31ref)"
+toWat I31Get          = "(i31.get_s)"
 toWat Nop             = "(nop)"
 
 emit :: [Instr] -> String
