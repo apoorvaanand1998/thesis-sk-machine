@@ -2,18 +2,26 @@ module Choreograph where
 
 import WAT
 
-data AppNodeField = LeftANF | RightANF deriving (Show, Eq)
+data Comb     = PrimComb Char | PrimOp Char | CRef String
+data Val      = PrimVal Int | VRef String
+data Field    = LeftF | RightF 
 
-data WatGraph = WatGraph Comb Val
-data Comb     = PrimComb | PrimOp | CRef String
-data Val      = PrimVal  | VRef String
+data GraphInstr = MkGraph Comb Val
+                | TopStack
+                | Ancestor Int
+                | StoRed Field String
+                | Store Field String
 
-data GraphInstr = MkNode Comb Val 
+toWatInstr :: GraphInstr -> [Instr]
+toWatInstr TopStack     = topLAS
+toWatInstr (Ancestor i) = ancestor i
+toWatInstr (StoRed f s) = stoRed f s
+toWatInstr (Store f s)  = store f s
 
 -- assumed appNode is on top of the stack
 -- value to be stored is fully reduced i.e., it is an i31 ref
 -- left represents comb/prim and right a constant
-stoRed :: AppNodeField -> String -> [Instr]
+stoRed :: Field -> String -> [Instr]
 stoRed anf varIden = [ StructGet "appNode" fn
                      , RefCastI31
                      , I31Get
@@ -22,19 +30,19 @@ stoRed anf varIden = [ StructGet "appNode" fn
         fn = fieldName anf
 
 -- stores non-reduced fields in variables
-store :: AppNodeField -> String -> [Instr]
+store :: Field -> String -> [Instr]
 store anf varIden = [ StructGet "appNode" fn
                     , LocalSet varIden ]
     where
         fn = fieldName anf
 
-fieldName :: AppNodeField -> String
-fieldName LeftANF  = "$left"
-fieldName RightANF = "$right"
+fieldName :: Field -> String
+fieldName LeftF  = "$left"
+fieldName RightF = "$right"
 
 -- gets the ith ancestor of the top of the LAS
-getAncestor :: Int -> [Instr]
-getAncestor i =
+ancestor :: Int -> [Instr]
+ancestor i =
     let
         las       = "$las"
         lasIdx    = "$n"
@@ -47,4 +55,4 @@ getAncestor i =
 
 -- leaves an appNode on top of the WASM stack
 topLAS :: [Instr]
-topLAS = getAncestor 0
+topLAS = ancestor 0
