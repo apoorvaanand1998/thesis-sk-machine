@@ -2,11 +2,11 @@ module Choreograph where
 
 import WAT
 
-data Comb     = PrimComb Char | PrimOp Char | CRef String
-data Val      = PrimVal Int | VRef String
-data Field    = LeftF | RightF 
+data Comb  = PrimComb Char | PrimOp Char | CRef String | CRec GraphInstr
+data Val   = PrimVal Int | VRef String | VRec GraphInstr
+data Field = LeftF | RightF 
 
-data GraphInstr = MkGraph Comb Val
+data GraphInstr = MkNode Comb Val
                 | TopStack
                 | Ancestor Int
                 | StoRed Field String
