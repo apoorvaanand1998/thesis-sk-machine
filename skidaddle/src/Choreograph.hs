@@ -5,13 +5,15 @@ import Data.List (elemIndex)
 
 data Comb  = PrimComb String | PrimOp String | CRef String | CRec GraphInstr
 data Val   = PrimVal Int | VRef String | VRec GraphInstr
-data Field = LeftF | RightF 
+data Field = LeftF | RightF
 
 data GraphInstr = MkNode Comb Val
                 | TopStack
                 | Ancestor Int
                 | StoRed Field String
                 | Store Field String
+                | Check Int [GraphInstr]
+                | NodeSet Field
 
 -- x = MkNode (CRec (MkNode (CRef "$x") (VRec (MkNode (CRef "$y") (VRef "$z")))))
 -- an example of how CRec and CRef are used
@@ -21,6 +23,7 @@ toWatInstr TopStack     = topLAS
 toWatInstr (Ancestor i) = ancestor i
 toWatInstr (StoRed f s) = stoRed f s
 toWatInstr (Store f s)  = store f s
+toWatInstr (Check i gs) = check i gs
 toWatInstr (MkNode c v) = fromComb c ++ fromVal v ++ [I32Const 42, StructNew "$appNode"]
 -- 42 is the default name
 
@@ -85,3 +88,34 @@ ancestor i =
 -- leaves an appNode on top of the WASM stack
 topLAS :: [Instr]
 topLAS = ancestor 0
+
+check :: Int -> [GraphInstr] -> [Instr]
+check i gs = [ LocalGet "$ascii"
+             , I32Const i
+             , I32Eq ]
+
+---
+-- Step Functions and helpers
+---
+
+-- precondition : i >= 0 and i <= 5
+stores :: Int  -> [GraphInstr]
+stores i =
+    let
+        vars = ["$p", "$q", "$r", "$s", "$t"]
+        f x  = [Ancestor x, Store RightF (vars !! x)]
+    in
+        concatMap f [0..i]
+
+modAnc :: Int -> GraphInstr -> GraphInstr -> [GraphInstr]
+modAnc i leftNode rightNode = [ Ancestor i, leftNode, NodeSet LeftF
+                              , Ancestor i, rightNode, NodeSet RightF ]
+
+lasModify :: [GraphInstr] -> [Instr]
+lasModify = undefined
+
+redRuleS :: [GraphInstr]
+redRuleS =   stores 3 ++ modAnc 2 ln rn
+    where
+        ln = MkNode (CRef "$p") (VRef "$r")
+        rn = MkNode (CRef "$q") (VRef "$r")
