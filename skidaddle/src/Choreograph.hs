@@ -10,10 +10,9 @@ data Field = LeftF | RightF
 data GraphInstr = MkNode Comb Val
                 | TopStack
                 | Ancestor Int
-                | StoRed Field String
                 | Store Field String
-                | Check Int [GraphInstr]
                 | NodeSet Field
+                | Check Int [GraphInstr]
 
 -- x = MkNode (CRec (MkNode (CRef "$x") (VRec (MkNode (CRef "$y") (VRef "$z")))))
 -- an example of how CRec and CRef are used
@@ -21,7 +20,6 @@ data GraphInstr = MkNode Comb Val
 toWatInstr :: GraphInstr -> [Instr]
 toWatInstr TopStack     = topLAS
 toWatInstr (Ancestor i) = ancestor i
-toWatInstr (StoRed f s) = stoRed f s
 toWatInstr (Store f s)  = store f s
 toWatInstr (Check i gs) = check i gs
 toWatInstr (MkNode c v) = fromComb c ++ fromVal v ++ [I32Const 42, StructNew "$appNode"]
@@ -49,17 +47,6 @@ fromVal (VRec g)    = toWatInstr g
     
 prim :: String -> Instr
 prim x = maybe (error "Unknown PrimComb or PrimOp") RefI31 (elemIndex x combs)
-
--- assumed appNode is on top of the stack
--- value to be stored is fully reduced i.e., it is an i31 ref
--- left represents comb/prim and right a constant
-stoRed :: Field -> String -> [Instr]
-stoRed anf varIden = [ StructGet "$appNode" fn
-                     , RefCastI31
-                     , I31Get
-                     , LocalSet varIden ]
-    where
-        fn = fieldName anf
 
 -- stores non-reduced fields in variables
 store :: Field -> String -> [Instr]
