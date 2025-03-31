@@ -8,7 +8,6 @@ data Val   = PrimVal Int | VRef String | VRec GraphInstr
 data Field = LeftF | RightF
 
 data GraphInstr = MkNode Comb Val
-                | TopStack
                 | Ancestor Int
                 | Store Field String
                 | NodeSet Field
@@ -18,7 +17,6 @@ data GraphInstr = MkNode Comb Val
 -- an example of how CRec and CRef are used
 
 toWatInstr :: GraphInstr -> [Instr]
-toWatInstr TopStack     = topLAS
 toWatInstr (Ancestor i) = ancestor i
 toWatInstr (Store f s)  = store f s
 toWatInstr (Check i gs) = check i gs
@@ -71,10 +69,6 @@ ancestor i =
         , LocalGet lasIdx ]                         ++
         if i == 0 then [] else [I32Const i, I32Sub] ++
         [ ArrayGet stackType ]
-
--- leaves an appNode on top of the WASM stack
-topLAS :: [Instr]
-topLAS = ancestor 0
 
 check :: Int -> [GraphInstr] -> [Instr]
 check i gs = [ LocalGet "$ascii"
