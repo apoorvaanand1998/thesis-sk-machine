@@ -1,5 +1,5 @@
 module WAT where
-import Data.List (intercalate)
+import Data.List ( intercalate )
 
 type Ident = String
 
@@ -16,6 +16,8 @@ data Instr = I32Const Int
            | RefI31 Int
            | RefCastI31
            | I31Get
+           | If [Instr]
+           | Br Ident
            | Nop
            deriving Show
 
@@ -33,6 +35,8 @@ toWat (StructSet t f) = "(struct.set " ++ show t ++ " " ++ show f ++ ")"
 toWat (RefI31 i)      = "(i32.const " ++ show i ++ ")" ++ "(ref.i31)"
 toWat RefCastI31      = "(ref.cast i31ref)"
 toWat I31Get          = "(i31.get_s)"
+toWat (If is)         = "(if (then" ++ emit is ++ "))"
+toWat (Br i)          = "(br " ++ show i ++ ")"
 toWat Nop             = "(nop)"
 
 emit :: [Instr] -> String
