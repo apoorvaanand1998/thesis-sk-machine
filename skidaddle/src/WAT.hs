@@ -15,6 +15,8 @@ data Instr = I32Const Int
            | StructSet Ident Ident
            | RefI31 Int
            | RefCastI31
+           | RefCast Ident
+           | RefTest Ident
            | I31Get
            | If [Instr]
            | Br Ident
@@ -34,6 +36,8 @@ toWat (StructGet t f) = "(struct.get " ++ show t ++ " " ++ show f ++ ")"
 toWat (StructSet t f) = "(struct.set " ++ show t ++ " " ++ show f ++ ")"
 toWat (RefI31 i)      = "(i32.const " ++ show i ++ ")" ++ "(ref.i31)"
 toWat RefCastI31      = "(ref.cast i31ref)"
+toWat (RefCast i)     = "(ref.cast (ref null " ++ i ++ "))"
+toWat (RefTest i)     = "(ref.test (ref null " ++ i ++ "))"
 toWat I31Get          = "(i31.get_s)"
 toWat (If is)         = "(if (then" ++ emit is ++ "))"
 toWat (Br i)          = "(br " ++ show i ++ ")"

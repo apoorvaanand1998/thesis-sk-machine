@@ -101,13 +101,36 @@ modAnc :: Int -> GraphInstr -> GraphInstr -> [GraphInstr]
 modAnc i leftNode rightNode = [ Ancestor i, leftNode, NodeSet LeftF
                               , Ancestor i, rightNode, NodeSet RightF ]
 
-lasModify :: [GraphInstr] -> [Instr]
-lasModify = undefined
+lasModify :: GraphInstr -> [Instr]
+lasModify g@(MkNode _ _) = undefined
+    where
+        n  = leftSpineLen g
+        ns = [1..n]
+
+        las :: Int -> [Instr]
+        las i = [LocalGet "$las", LocalGet "$n", I32Const i, I32Sub] -- hardcoded for now
+
+        -- the assumption of the below function is that there exists a variable 
+        -- called temp, that stores the value of ln in it
+        arraySetVal :: [Instr]
+        arraySetVal = [LocalGet "$temp", ArraySet "$stack"]
+
+        checkAndLeft :: [Instr]
+        checkAndLeft = [LocalGet "$temp", StructGet "$appNode" "$left", RefTest "$appNode",
+                        If [LocalGet "$temp", StructGet "$appNode" "$left", RefCast "$appNode", LocalSet "$temp"]]
+
+lasModify    _           = error "lasModify should only be getting MkNode"
+
+leftSpineLen :: GraphInstr -> Int
+leftSpineLen (MkNode (CRec g) _) = 1 + leftSpineLen g
+leftSpineLen (MkNode  _       _) = 1
+leftSpineLen  _                  = error "leftSpineLen can only be measured for MkNode"
 
 redRuleS :: [GraphInstr]
-redRuleS =   stores 3 ++ modAnc 2 ln rn
+redRuleS =   stores n ++ modAnc (n-1) ln rn
     where
         ln = MkNode (CRef "$p") (VRef "$r")
         rn = MkNode (CRef "$q") (VRef "$r")
+        n  = 3
 
 -- make a datatype for variables to remove implicit variable name use
