@@ -6,6 +6,7 @@ type Ident = String
 data Instr = I32Const Int
            | I32Eq
            | I32Sub
+           | I32Add
            | LocalGet Ident
            | LocalSet Ident
            | ArrayGet Ident
@@ -27,20 +28,21 @@ toWat :: Instr -> String
 toWat (I32Const n)    = "(i32.const " ++ show n ++ ")"
 toWat I32Eq           = "(i32.eq)"
 toWat I32Sub          = "(i32.sub)"
-toWat (LocalGet i)    = "(local.get " ++ show i ++ ")"
-toWat (LocalSet i)    = "(local.set " ++ show i ++ ")"
-toWat (ArrayGet i)    = "(array.get " ++ show i ++ ")"
-toWat (ArraySet i)    = "(array.set " ++ show i ++ ")"
-toWat (StructNew i)   = "(struct.new" ++ show i ++ ")"
-toWat (StructGet t f) = "(struct.get " ++ show t ++ " " ++ show f ++ ")"
-toWat (StructSet t f) = "(struct.set " ++ show t ++ " " ++ show f ++ ")"
+toWat I32Add          = "(i32.add)"
+toWat (LocalGet i)    = "(local.get " ++ i ++ ")"
+toWat (LocalSet i)    = "(local.set " ++ i ++ ")"
+toWat (ArrayGet i)    = "(array.get " ++ i ++ ")"
+toWat (ArraySet i)    = "(array.set " ++ i ++ ")"
+toWat (StructNew i)   = "(struct.new" ++ i ++ ")"
+toWat (StructGet t f) = "(struct.get " ++ t ++ " " ++ f ++ ")"
+toWat (StructSet t f) = "(struct.set " ++ t ++ " " ++ f ++ ")"
 toWat (RefI31 i)      = "(i32.const " ++ show i ++ ")" ++ "(ref.i31)"
 toWat RefCastI31      = "(ref.cast i31ref)"
 toWat (RefCast i)     = "(ref.cast (ref null " ++ i ++ "))"
 toWat (RefTest i)     = "(ref.test (ref null " ++ i ++ "))"
 toWat I31Get          = "(i31.get_s)"
-toWat (If is)         = "(if (then" ++ emit is ++ "))"
-toWat (Br i)          = "(br " ++ show i ++ ")"
+toWat (If is)         = "(if (then\n" ++ emit is ++ "))"
+toWat (Br i)          = "(br " ++ i ++ ")"
 toWat Nop             = "(nop)"
 
 emit :: [Instr] -> String

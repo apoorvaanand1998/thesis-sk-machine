@@ -12,10 +12,21 @@ data GraphInstr = MkNode Comb Val
                 | Ancestor Int
                 | Store Field String
                 | NodeSet Field
-                | Check String [GraphInstr]
+                | Check String [MixedInstr]              
 
 -- x = MkNode (CRec (MkNode (CRef "$x") (VRec (MkNode (CRef "$y") (VRef "$z")))))
 -- an example of how CRec and CRef are used
+
+-- stupid hack 
+-- because I would like to insert instructions in between graph instructions
+-- sometimes... like with lasModify and modAnc
+data MixedInstr = GI GraphInstr | WI Instr  
+
+toInstr :: [MixedInstr] -> [Instr]
+toInstr []     = []
+toInstr (x:xs) = case x of
+    GI gi -> toWatInstr gi ++ toInstr xs
+    WI wi -> wi : toInstr xs
 
 toWatInstr :: GraphInstr -> [Instr]
 toWatInstr (Ancestor i) = ancestor i
@@ -72,18 +83,18 @@ ancestor i =
     in
         [ LocalGet las
         , LocalGet lasIdx ]                         ++
-        if i == 0 then [] else [I32Const i, I32Sub] ++
+        (if i == 0 then [] else [I32Const i, I32Sub]) ++
         [ ArrayGet stackType ]
 
 ---
 -- Step Functions and helpers
 ---
 
-check :: String -> [GraphInstr] -> [Instr]
+check :: String -> [MixedInstr] -> [Instr]
 check i gs = [ LocalGet "$ascii"
              , I32Const (fromMaybe (error e) (elemIndex i combs))
              , I32Eq
-             , If (concatMap toWatInstr gs ++ lasModify gs ++ [end]) ]
+             , If (toInstr gs ++ [end]) ]
     where
         e   = "PrimComb or PrimOp not recognized during code gen"
         end = Br "combCase"
@@ -95,22 +106,26 @@ stores i =
         vars = ["$p", "$q", "$r", "$s", "$t"]
         f x  = [Ancestor x, Store RightF (vars !! x)]
     in
-        concatMap f [0..i]
+        concatMap f [0..i-1]
 
-modAnc :: Int -> GraphInstr -> GraphInstr -> [GraphInstr]
-modAnc i leftNode rightNode = [ Ancestor i, leftNode, NodeSet LeftF
-                              , Ancestor i, rightNode, NodeSet RightF ]
+modAnc :: Int -> GraphInstr -> GraphInstr -> [MixedInstr]
+modAnc i leftNode rightNode = [ GI (Ancestor i), GI leftNode, GI (NodeSet LeftF)
+                              , GI leftNode, WI (LocalSet "$temp")
+                              , GI (Ancestor i), GI rightNode, GI (NodeSet RightF) ]
+                              ++
+                              map WI (lasModify i leftNode)
 
-lasModify :: GraphInstr -> [Instr]
-lasModify g@(MkNode _ _) = undefined
+lasModify :: Int -> GraphInstr -> [Instr]
+lasModify n g@(MkNode _ _) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLeft) is ++ nextIdx
     where
-        n  = leftSpineLen g
-        ns = [1..n]
+        nextIdx = [LocalGet "$n", I32Const n, I32Sub, I32Const (leftSpineLen g), I32Add, LocalSet "$r"]
+
+        is = [1..leftSpineLen g] -- you got from (lasLength - redRuleN + 1) to (lasLength - redRuleN + lefSpineLenOfNewNode)
 
         las :: Int -> [Instr]
-        las i = [LocalGet "$las", LocalGet "$n", I32Const i, I32Sub] -- hardcoded for now
+        las i = [LocalGet "$las", LocalGet "$n", I32Const n, I32Sub, I32Const i, I32Add] -- hardcoded for now
 
-        -- the assumption of the below function is that there exists a variable 
+        -- the assumption of the below functions is that there exists a variable 
         -- called temp, that stores the value of ln in it
         arraySetVal :: [Instr]
         arraySetVal = [LocalGet "$temp", ArraySet "$stack"]
@@ -119,15 +134,15 @@ lasModify g@(MkNode _ _) = undefined
         checkAndLeft = [LocalGet "$temp", StructGet "$appNode" "$left", RefTest "$appNode",
                         If [LocalGet "$temp", StructGet "$appNode" "$left", RefCast "$appNode", LocalSet "$temp"]]
 
-lasModify    _           = error "lasModify should only be getting MkNode"
+lasModify _ _             = error "lasModify should only be getting MkNode"
 
 leftSpineLen :: GraphInstr -> Int
 leftSpineLen (MkNode (CRec g) _) = 1 + leftSpineLen g
 leftSpineLen (MkNode  _       _) = 1
 leftSpineLen  _                  = error "leftSpineLen can only be measured for MkNode"
 
-redRuleS :: [GraphInstr]
-redRuleS =   stores n ++ modAnc (n-1) ln rn
+redRuleS :: [MixedInstr]
+redRuleS = map GI (stores n) ++ modAnc (n-1) ln rn
     where
         ln = MkNode (CRef "$p") (VRef "$r")
         rn = MkNode (CRef "$q") (VRef "$r")
