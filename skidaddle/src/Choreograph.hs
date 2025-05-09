@@ -1,16 +1,17 @@
 module Choreograph where
 
 import WAT
+import Identifiers
 import Data.List ( elemIndex )
 import Data.Maybe ( fromMaybe )
 
-data Comb  = PrimComb String | PrimOp String | CRef String | CRec GraphInstr
-data Val   = PrimVal Int | VRef String | VRec GraphInstr
+data Comb  = PrimComb String | PrimOp String | CRef Identifier | CRec GraphInstr
+data Val   = PrimVal Int | VRef Identifier | VRec GraphInstr
 data Field = LeftF | RightF
 
 data GraphInstr = MkNode Comb Val
                 | Ancestor Int
-                | Store Field String
+                | Store Field Identifier
                 | NodeSet Field
                 | Check String [MixedInstr]              
 
@@ -33,7 +34,7 @@ toWatInstr (Ancestor i) = ancestor i
 toWatInstr (Store f s)  = store f s
 toWatInstr (NodeSet f)  = nodeSet f
 toWatInstr (Check s gs) = check s gs
-toWatInstr (MkNode c v) = fromComb c ++ fromVal v ++ [I32Const 42, StructNew "$appNode"]
+toWatInstr (MkNode c v) = fromComb c ++ fromVal v ++ [I32Const 42, StructNew AppNodeType]
 -- 42 is the default name
 
 -- based on the enum order of node_tag in the eval.c file
@@ -60,57 +61,52 @@ prim :: String -> Instr
 prim x = maybe (error "Unknown PrimComb or PrimOp") RefI31 (elemIndex x combs)
 
 -- stores non-reduced fields in variables
-store :: Field -> String -> [Instr]
-store anf varIden = [ StructGet "$appNode" fn
+store :: Field -> Identifier -> [Instr]
+store anf varIden = [ StructGet AppNodeType fn
                     , LocalSet varIden ]
     where
         fn = fieldName anf
 
 nodeSet :: Field -> [Instr]
-nodeSet anf = [StructSet "$appNode" (fieldName anf)]
+nodeSet anf = [StructSet AppNodeType (fieldName anf)]
 
-fieldName :: Field -> String
-fieldName LeftF  = "$left"
-fieldName RightF = "$right"
+fieldName :: Field -> Identifier
+fieldName LeftF  = LeftField
+fieldName RightF = RightField
 
 -- gets the ith ancestor of the top of the LAS
 ancestor :: Int -> [Instr]
 ancestor i =
-    let
-        las       = "$las"
-        lasIdx    = "$n"
-        stackType = "$stack"
-    in
-        [ LocalGet las
-        , LocalGet lasIdx ]                         ++
+        [ LocalGet LASType
+        , LocalGet LasIdx ]                           ++
         (if i == 0 then [] else [I32Const i, I32Sub]) ++
-        [ ArrayGet stackType ]
+        [ ArrayGet StackType ]
 
 ---
--- Step Functions and helpers
+-- step function scaffolding and helpers
 ---
 
 check :: String -> [MixedInstr] -> [Instr]
-check i gs = [ LocalGet "$ascii"
+check i gs = [ LocalGet LocalCombIdx
              , I32Const (fromMaybe (error e) (elemIndex i combs))
              , I32Eq
              , If (toInstr gs ++ [end]) ]
     where
         e   = "PrimComb or PrimOp not recognized during code gen"
-        end = Br "combCase"
+        end = Br CombCase
 
 -- precondition : i >= 0 and i <= 5
-stores :: Int  -> [GraphInstr]
+stores :: Int -> [GraphInstr]
 stores i =
     let
-        vars = ["$p", "$q", "$r", "$s", "$t"]
+        vars = map MV [P, Q, R, S, T]
         f x  = [Ancestor x, Store RightF (vars !! x)]
     in
         concatMap f [0..i-1]
 
 modAnc :: Int -> GraphInstr -> GraphInstr -> [MixedInstr]
 modAnc i leftNode rightNode = [ GI (Ancestor i), GI leftNode, GI (NodeSet LeftF)
-                              , GI leftNode, WI (LocalSet "$temp")
+                              , GI leftNode, WI (LocalSet TempVar)
                               , GI (Ancestor i), GI rightNode, GI (NodeSet RightF) ]
                               ++
                               map WI (lasModify i leftNode)
@@ -118,21 +114,21 @@ modAnc i leftNode rightNode = [ GI (Ancestor i), GI leftNode, GI (NodeSet LeftF)
 lasModify :: Int -> GraphInstr -> [Instr]
 lasModify n g@(MkNode _ _) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLeft) is ++ nextIdx
     where
-        nextIdx = [LocalGet "$n", I32Const n, I32Sub, I32Const (leftSpineLen g), I32Add, LocalSet "$r"]
+        nextIdx = [LocalGet LasIdx, I32Const n, I32Sub, I32Const (leftSpineLen g), I32Add, LocalSet ReturnVar]
 
         is = [1..leftSpineLen g] -- you got from (lasLength - redRuleN + 1) to (lasLength - redRuleN + lefSpineLenOfNewNode)
 
         las :: Int -> [Instr]
-        las i = [LocalGet "$las", LocalGet "$n", I32Const n, I32Sub, I32Const i, I32Add] -- hardcoded for now
+        las i = [LocalGet LASType, LocalGet LasIdx, I32Const n, I32Sub, I32Const i, I32Add] -- hardcoded for now
 
         -- the assumption of the below functions is that there exists a variable 
         -- called temp, that stores the value of ln in it
         arraySetVal :: [Instr]
-        arraySetVal = [LocalGet "$temp", ArraySet "$stack"]
+        arraySetVal = [LocalGet TempVar, ArraySet StackType]
 
         checkAndLeft :: [Instr]
-        checkAndLeft = [LocalGet "$temp", StructGet "$appNode" "$left", RefTest "$appNode",
-                        If [LocalGet "$temp", StructGet "$appNode" "$left", RefCast "$appNode", LocalSet "$temp"]]
+        checkAndLeft = [LocalGet TempVar, StructGet AppNodeType LeftField, RefTest AppNodeType,
+                        If [LocalGet TempVar, StructGet AppNodeType LeftField, RefCast AppNodeType, LocalSet TempVar]]
 
 lasModify _ _             = error "lasModify should only be getting MkNode"
 
@@ -144,8 +140,6 @@ leftSpineLen  _                  = error "leftSpineLen can only be measured for 
 redRuleS :: [MixedInstr]
 redRuleS = map GI (stores n) ++ modAnc (n-1) ln rn
     where
-        ln = MkNode (CRef "$p") (VRef "$r")
-        rn = MkNode (CRef "$q") (VRef "$r")
+        ln = MkNode (CRef (MV P)) (VRef (MV R))
+        rn = MkNode (CRef (MV Q)) (VRef (MV R))
         n  = 3
-
--- make a datatype for variables to remove implicit variable name use

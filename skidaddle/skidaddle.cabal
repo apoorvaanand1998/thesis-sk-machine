@@ -21,7 +21,8 @@ library
     exposed-modules:  MyLib
     other-modules:
         WAT,
-        Choreograph
+        Choreograph,
+        Identifiers
     -- other-extensions:
     build-depends:    base ^>=4.18.1.0
     hs-source-dirs:   src
