@@ -548,17 +548,6 @@
         )
     )
 
-    (func $mkI (export "mkI")
-     ;; helper function that puts things into an appNode with the left being the I combinator
-     (param $x anyref) (result (ref null $appNode))
-
-        (i32.const 73)
-        (ref.i31)
-        (local.get $x)
-        (i32.const 42) ;; same default name
-        (struct.new $appNode)
-    )
-
     (func $reduce (export "reduce")
         (param $an (ref null $appNode)) (param $treeHeight i32) (result i32) 
         ;; I am going to support a result type of only i32 for now, would work with bools as well

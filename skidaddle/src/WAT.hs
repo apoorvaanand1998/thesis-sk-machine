@@ -1,4 +1,5 @@
 module WAT where
+
 import Data.List ( intercalate )
 import Identifiers
 
@@ -32,7 +33,7 @@ toWat (LocalGet i)    = "(local.get " ++ show i ++ ")"
 toWat (LocalSet i)    = "(local.set " ++ show i ++ ")"
 toWat (ArrayGet i)    = "(array.get " ++ show i ++ ")"
 toWat (ArraySet i)    = "(array.set " ++ show i ++ ")"
-toWat (StructNew i)   = "(struct.new" ++ show i ++ ")"
+toWat (StructNew i)   = "(struct.new " ++ show i ++ ")"
 toWat (StructGet t f) = "(struct.get " ++ show t ++ " " ++ show f ++ ")"
 toWat (StructSet t f) = "(struct.set " ++ show t ++ " " ++ show f ++ ")"
 toWat (RefI31 i)      = "(i32.const " ++ show i ++ ")" ++ "(ref.i31)"

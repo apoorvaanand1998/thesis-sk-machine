@@ -1,29 +1,45 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 module MyLib where
-import WAT
 
--- precondition - n is a non-negative integer
-loadArgs :: Int -> [Instr]
-loadArgs n = concatMap loadArg [0..n-1]
+import Choreograph ( toInstr, MixedInstr )
+import WAT ( emit )
+import ReductionRules
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Text.Lazy.IO as TIO
+import qualified Data.ByteString.Lazy as BL
+import System.Directory ( removeFile, renameFile ) 
 
--- precondition - n is a non-negative integer
-loadArg :: Int -> [Instr]
-loadArg n = 
-    let
-        las          = "$las"
-        lasIdx       = "$n"
-        stackType    = "$stack"
-        appNodeType  = "$appNode"
-        argFieldName = "$right"
-        vars         = ["$p", "$q", "$r", "$s", "$t"]
-        
-        nVars :: Int -> [Instr]
-        nVars 0 = [Nop]
-        nVars x = [I32Const x, I32Sub] 
+go :: IO ()
+go = do
+    writeComb "S" redRuleS
+    rmAndMv
 
-        nthVar :: Int -> Instr
-        nthVar x = LocalSet (vars !! x)
-    in  
-        [LocalGet las, LocalGet lasIdx]                          ++ 
-         nVars n                                                 ++
-        [ArrayGet stackType, StructGet appNodeType argFieldName] ++
-        [nthVar n]
+rmAndMv :: IO ()
+rmAndMv = do
+    removeFile "../SKeleton.wat"
+    renameFile "../skGen.wat" "../SKeleton.wat"
+
+-- takes combinator and generated code for that comb
+-- takes code from SKeleton.wat and writes to skGen.wat
+writeComb :: String -> [MixedInstr] -> IO ()
+writeComb c is = do
+    fb <- BL.readFile "../SKeleton.wat"
+    let ft = TE.decodeUtf8 fb 
+    -- doing it this way because of 
+    -- https://hackage-content.haskell.org/package/text-2.1.2/docs/Data-Text-Lazy-IO.html#v:readFile
+        untilStart = f1 start ft
+        rest       = f2 end   ft
+        r = [untilStart, T.pack start, T.pack (emit (toInstr is)), "\n", T.pack end, rest]
+    TIO.writeFile "../skGen.wat" $ T.concat r
+    where
+        start = ";; " ++ c ++ " Combinator Start\n"
+        end   = ";; " ++ c ++ " Combinator End\n"
+        split' x = T.splitOn (T.pack x)
+
+        f1 x (split' x -> [untilStart, _]) = untilStart
+        f1 _ _                             = error "Error while splitting on Start"
+
+        f2 x (split' x -> [_, rest])       = rest
+        f2 _ _                             = error "Error while splitting on End"

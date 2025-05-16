@@ -5,6 +5,15 @@ import Identifiers
 import Data.List ( elemIndex )
 import Data.Maybe ( fromMaybe )
 
+-- based on the enum order of node_tag in the eval.c file
+combs :: [String]
+combs = [ "S", "K", "I", "B", "C",
+          "A", "Y", "SS", "BB", "CC", "P", "R", "O", "U", "Z",
+          "K2", "K3", "K4", "CCB",
+          "ADD", "SUB", "MUL", "QUOT", "REM", "SUBR", "UQUOT", "UREM", "NEG",
+          "AND", "OR", "XOR", "INV", "SHL", "SHR", "ASHR",
+          "EQ", "NE", "LT", "LE", "GT", "GE", "ULT", "ULE", "UGT", "UGE", "ICMP", "UCMP" ]
+
 data Comb  = PrimComb String | PrimOp String | CRef Identifier | CRec GraphInstr
 data Val   = PrimVal Int | VRef Identifier | VRec GraphInstr
 data Field = LeftF | RightF
@@ -19,7 +28,7 @@ data GraphInstr = MkNode Comb Val
 -- an example of how CRec and CRef are used
 
 -- stupid hack 
--- because I would like to insert instructions in between graph instructions
+-- because I would like to insert wasm instructions in between graph instructions
 -- sometimes... like with lasModify and modAnc
 data MixedInstr = GI GraphInstr | WI Instr  
 
@@ -36,15 +45,6 @@ toWatInstr (NodeSet f)  = nodeSet f
 toWatInstr (Check s gs) = check s gs
 toWatInstr (MkNode c v) = fromComb c ++ fromVal v ++ [I32Const 42, StructNew AppNodeType]
 -- 42 is the default name
-
--- based on the enum order of node_tag in the eval.c file
-combs :: [String]
-combs = [ "S", "K", "I", "B", "C",
-          "A", "Y", "SS", "BB", "CC", "P", "R", "O", "U", "Z",
-          "K2", "K3", "K4", "CCB",
-          "ADD", "SUB", "MUL", "QUOT", "REM", "SUBR", "UQUOT", "UREM", "NEG",
-          "AND", "OR", "XOR", "INV", "SHL", "SHR", "ASHR",
-          "EQ", "NE", "LT", "LE", "GT", "GE", "ULT", "ULE", "UGT", "UGE", "ICMP", "UCMP" ]
 
 fromComb :: Comb -> [Instr]
 fromComb (PrimComb x) = [prim x]
@@ -136,10 +136,3 @@ leftSpineLen :: GraphInstr -> Int
 leftSpineLen (MkNode (CRec g) _) = 1 + leftSpineLen g
 leftSpineLen (MkNode  _       _) = 1
 leftSpineLen  _                  = error "leftSpineLen can only be measured for MkNode"
-
-redRuleS :: [MixedInstr]
-redRuleS = map GI (stores n) ++ modAnc (n-1) ln rn
-    where
-        ln = MkNode (CRef (MV P)) (VRef (MV R))
-        rn = MkNode (CRef (MV Q)) (VRef (MV R))
-        n  = 3

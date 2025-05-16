@@ -22,7 +22,7 @@ instance Show Identifier where
     show LasIdx       = "$n"
     show StackType    = "$stack"
     show AppNodeType  = "$appNode"
-    show LeftField    = "left"
+    show LeftField    = "$left"
     show RightField   = "$right"
     show LocalCombIdx = "$ascii"
     show CombCase     = "$combCase"
