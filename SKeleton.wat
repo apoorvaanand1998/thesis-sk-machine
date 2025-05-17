@@ -133,6 +133,10 @@
         (block $combCase (result i32)
             (loop $switch (result i32)
 ;; S Combinator Start
+(local.get $ascii)
+(i32.const 0)
+(i32.eq)
+(if (then
 (local.get $las)
 (local.get $n)
 (array.get $stack)
@@ -199,6 +203,7 @@
 (i32.const 1)
 (i32.add)
 (local.set $r)
+(br $combCase)))
 ;; S Combinator End
 
 ;; K Combinator Start

@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 module MyLib where
 
-import Choreograph ( toInstr, MixedInstr )
+import Choreograph
 import WAT ( emit )
 import ReductionRules
 import qualified Data.Text.Lazy as T
@@ -13,7 +13,7 @@ import System.Directory ( removeFile, renameFile )
 
 go :: IO ()
 go = do
-    writeComb "S" redRuleS
+    writeComb (Check "S" redRuleS)
     rmAndMv
 
 rmAndMv :: IO ()
@@ -23,15 +23,15 @@ rmAndMv = do
 
 -- takes combinator and generated code for that comb
 -- takes code from SKeleton.wat and writes to skGen.wat
-writeComb :: String -> [MixedInstr] -> IO ()
-writeComb c is = do
+writeComb :: GraphInstr -> IO ()
+writeComb is@(Check c _) = do
     fb <- BL.readFile "../SKeleton.wat"
     let ft = TE.decodeUtf8 fb 
     -- doing it this way because of 
     -- https://hackage-content.haskell.org/package/text-2.1.2/docs/Data-Text-Lazy-IO.html#v:readFile
         untilStart = f1 start ft
         rest       = f2 end   ft
-        r = [untilStart, T.pack start, T.pack (emit (toInstr is)), "\n", T.pack end, rest]
+        r = [untilStart, T.pack start, T.pack (emit (toWatInstr is)), "\n", T.pack end, rest]
     TIO.writeFile "../skGen.wat" $ T.concat r
     where
         start = ";; " ++ c ++ " Combinator Start\n"
@@ -43,3 +43,5 @@ writeComb c is = do
 
         f2 x (split' x -> [_, rest])       = rest
         f2 _ _                             = error "Error while splitting on End"
+
+writeComb _ = error "writeComb only works with Check"

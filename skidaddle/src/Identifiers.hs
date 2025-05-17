@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 module Identifiers where
 
-data MetaVars = P | Q | R | S | T deriving Enum
+data MetaVars = X | Y | Z | W | V deriving Enum
 
 data Identifier = LASType | LasIdx | StackType | AppNodeType 
                 | LeftField | RightField | LocalCombIdx -- currently "$ascii", but that doesn't fit anymore
@@ -10,11 +10,11 @@ data Identifier = LASType | LasIdx | StackType | AppNodeType
 
 instance Show MetaVars where
     show :: MetaVars -> String
-    show P = "$p"
-    show Q = "$q"
-    show R = "$r"
-    show S = "$s"
-    show T = "$t"
+    show X = "$x"
+    show Y = "$y"
+    show Z = "$z"
+    show W = "$w"
+    show V = "$v"
 
 instance Show Identifier where
     show :: Identifier -> String

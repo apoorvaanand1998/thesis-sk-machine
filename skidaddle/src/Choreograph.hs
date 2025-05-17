@@ -22,14 +22,14 @@ data GraphInstr = MkNode Comb Val
                 | Ancestor Int
                 | Store Field Identifier
                 | NodeSet Field
-                | Check String [MixedInstr]              
+                | Check String [MixedInstr]
 
 -- x = MkNode (CRec (MkNode (CRef "$x") (VRec (MkNode (CRef "$y") (VRef "$z")))))
 -- an example of how CRec and CRef are used
 
 -- stupid hack 
 -- because I would like to insert wasm instructions in between graph instructions
--- sometimes... like with lasModify and modAnc
+-- sometimes... like with lasModify and modifyAncestor
 data MixedInstr = GI GraphInstr | WI Instr  
 
 toInstr :: [MixedInstr] -> [Instr]
@@ -99,20 +99,20 @@ check i gs = [ LocalGet LocalCombIdx
 stores :: Int -> [GraphInstr]
 stores i =
     let
-        vars = map MV [P, Q, R, S, T]
+        vars = map MV [X, Y, Z, W, V]
         f x  = [Ancestor x, Store RightF (vars !! x)]
     in
         concatMap f [0..i-1]
 
-modAnc :: Int -> GraphInstr -> GraphInstr -> [MixedInstr]
-modAnc i leftNode rightNode = [ GI (Ancestor i), GI leftNode, GI (NodeSet LeftF)
-                              , GI leftNode, WI (LocalSet TempVar)
-                              , GI (Ancestor i), GI rightNode, GI (NodeSet RightF) ]
-                              ++
-                              map WI (lasModify i leftNode)
+modifyAncestor :: Int -> MixedInstr -> MixedInstr -> [MixedInstr]
+modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
+                         , ln, WI (LocalSet TempVar)
+                         , GI (Ancestor i), rn, GI (NodeSet RightF) ]
+                         ++
+                         map WI (lasModify i ln)
 
-lasModify :: Int -> GraphInstr -> [Instr]
-lasModify n g@(MkNode _ _) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLeft) is ++ nextIdx
+lasModify :: Int -> MixedInstr -> [Instr]
+lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLeft) is ++ nextIdx
     where
         nextIdx = [LocalGet LasIdx, I32Const n, I32Sub, I32Const (leftSpineLen g), I32Add, LocalSet ReturnVar]
 
@@ -130,7 +130,8 @@ lasModify n g@(MkNode _ _) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLe
         checkAndLeft = [LocalGet TempVar, StructGet AppNodeType LeftField, RefTest AppNodeType,
                         If [LocalGet TempVar, StructGet AppNodeType LeftField, RefCast AppNodeType, LocalSet TempVar]]
 
-lasModify _ _             = error "lasModify should only be getting MkNode"
+lasModify _ (WI (LocalGet _))   = []
+lasModify _ _                   = error "lasModify should only be getting MkNode or LocalGet"
 
 leftSpineLen :: GraphInstr -> Int
 leftSpineLen (MkNode (CRec g) _) = 1 + leftSpineLen g
