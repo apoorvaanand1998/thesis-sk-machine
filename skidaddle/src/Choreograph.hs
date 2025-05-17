@@ -108,7 +108,7 @@ modifyAncestor :: Int -> MixedInstr -> MixedInstr -> [MixedInstr]
 modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
                          , ln, WI (LocalSet TempVar)
                          , GI (Ancestor i), rn, GI (NodeSet RightF) ]
-                         ++
+                          ++
                          map WI (lasModify i ln)
 
 lasModify :: Int -> MixedInstr -> [Instr]
@@ -119,7 +119,7 @@ lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ check
         is = [1..leftSpineLen g] -- you got from (lasLength - redRuleN + 1) to (lasLength - redRuleN + lefSpineLenOfNewNode)
 
         las :: Int -> [Instr]
-        las i = [LocalGet LASType, LocalGet LasIdx, I32Const n, I32Sub, I32Const i, I32Add] -- hardcoded for now
+        las i = [LocalGet LASType, LocalGet LasIdx, I32Const n, I32Sub, I32Const i, I32Add]
 
         -- the assumption of the below functions is that there exists a variable 
         -- called temp, that stores the value of ln in it
@@ -130,7 +130,7 @@ lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ check
         checkAndLeft = [LocalGet TempVar, StructGet AppNodeType LeftField, RefTest AppNodeType,
                         If [LocalGet TempVar, StructGet AppNodeType LeftField, RefCast AppNodeType, LocalSet TempVar]]
 
-lasModify _ (WI (LocalGet _))   = []
+lasModify n (WI (LocalGet _))   = [LocalGet LasIdx, I32Const n, I32Sub, LocalSet ReturnVar]
 lasModify _ _                   = error "lasModify should only be getting MkNode or LocalGet"
 
 leftSpineLen :: GraphInstr -> Int

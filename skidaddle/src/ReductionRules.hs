@@ -17,14 +17,20 @@ redRuleS = redRule n ln rn
         rn = GI (MkNode (CRef (MV Y)) (VRef (MV Z)))
 
 redRuleK :: [MixedInstr]
-redRuleK = map GI (stores n) ++ modifyAncestor (n-1) ln rn
+redRuleK = redRule n ln rn
     where
         n  = 2
-        ln = undefined
-        rn = undefined
+        ln = WI (prim "I")
+        rn = WI (LocalGet (MV X))
 
+-- different from sk.wat, but essentially doing the same thing
 redRuleI :: [MixedInstr]
-redRuleI = undefined
+redRuleI = redRule n ln rn
+    where
+        n  = 2
+        ln = WI (LocalGet (MV X))
+        rn = WI (LocalGet (MV Y)) -- so Y is left as it is
+        -- and X is kept on the ancestor above it, on the left
 
 redRuleB :: [MixedInstr]
 redRuleB = redRule n ln rn
@@ -65,9 +71,12 @@ redRuleC' = redRule n ln rn
                                       (VRef (MV W)))))
         rn = WI (LocalGet (MV Z))
 
--- same case as K and I
 redRuleA :: [MixedInstr]
-redRuleA = undefined
+redRuleA = redRule n ln rn
+    where
+        n  = 2
+        ln = WI (prim "I")
+        rn = WI (LocalGet (MV Y))
 
 redRuleU :: [MixedInstr]
 redRuleU = redRule n ln rn
@@ -110,13 +119,25 @@ redRuleO = redRule n ln rn
         rn = WI (LocalGet (MV Y))
 
 redRuleK2 :: [MixedInstr]
-redRuleK2 = undefined
+redRuleK2 = redRule n ln rn
+    where
+        n  = 3
+        ln = WI (prim "I")
+        rn = WI (LocalGet (MV X))
 
 redRuleK3 :: [MixedInstr]
-redRuleK3 = undefined
+redRuleK3 = redRule n ln rn
+    where
+        n  = 4
+        ln = WI (prim "I")
+        rn = WI (LocalGet (MV X))
 
 redRuleK4 :: [MixedInstr]
-redRuleK4 = undefined
+redRuleK4 = redRule n ln rn
+    where
+        n  = 5
+        ln = WI (prim "I")
+        rn = WI (LocalGet (MV X))
 
 redRuleC'B :: [MixedInstr]
 redRuleC'B = redRule n ln rn
