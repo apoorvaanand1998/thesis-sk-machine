@@ -108,9 +108,13 @@
      (param $las (ref null $stack)) (param $n i32) (result i32)
      ;; function returns the next index of the las we should work with
      ;; n is the index of the las we are currently working with
-        (local $f anyref)
-        (local $g anyref)
         (local $x anyref)
+        (local $y anyref)
+        (local $z anyref)
+        (local $w anyref)
+        (local $v anyref)
+        (local $temp anyref)
+        (local $r anyref)
         (local $ascii i32) ;; i8 can work here too
         ;; get the nth element of the las
         (local.get $las)
@@ -1272,7 +1276,46 @@
 ;; CCB Combinator End
 
 ;; ADD Combinator Start
-
+(local.get $ascii)
+(i32.const 19)
+(i32.eq)
+(if (then
+(local.get $las)
+(local.get $n)
+(array.get $stack)
+(struct.get $appNode $right)
+(local.set $x)
+(local.get $las)
+(local.get $n)
+(i32.const 1)
+(i32.sub)
+(array.get $stack)
+(struct.get $appNode $right)
+(local.set $y)
+(local.get $las)
+(local.get $n)
+(i32.const 1)
+(i32.sub)
+(array.get $stack)
+(i32.const 2)(ref.i31)
+(struct.set $appNode $left)
+(local.get $las)
+(local.get $n)
+(i32.const 1)
+(i32.sub)
+(array.get $stack)
+(local.get $x)
+(call $i31OrReduce)
+(local.get $y)
+(call $i31OrReduce)
+(i32.add)
+(ref.i31)
+(struct.set $appNode $right)
+(local.get $n)
+(i32.const 1)
+(i32.sub)
+(local.set $r)
+(br $combCase)))
 ;; ADD Combinator End
             )
         )

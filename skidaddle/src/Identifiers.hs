@@ -6,7 +6,7 @@ data MetaVars = X | Y | Z | W | V deriving Enum
 data Identifier = LASType | LasIdx | StackType | AppNodeType 
                 | LeftField | RightField | LocalCombIdx -- currently "$ascii", but that doesn't fit anymore
                 | CombCase | TempVar | ReturnVar
-                | MV MetaVars
+                | MV MetaVars | FnReduce
 
 instance Show MetaVars where
     show :: MetaVars -> String
@@ -29,3 +29,4 @@ instance Show Identifier where
     show TempVar      = "$temp"
     show ReturnVar    = "$r"
     show (MV mv)      = show mv
+    show FnReduce     = "$i31OrReduce"

@@ -111,6 +111,13 @@ modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
                           ++
                          map WI (lasModify i ln)
 
+-- right now, only for ADD but possibly going to be useful for other primitive ops
+primModAncst :: Int -> MixedInstr -> [MixedInstr] -> [MixedInstr]
+primModAncst i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
+                       , GI (Ancestor i) ] ++ rn ++ [GI (NodeSet RightF) ]
+                        ++ 
+                       map WI (lasModify i ln)
+
 lasModify :: Int -> MixedInstr -> [Instr]
 lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLeft) is ++ nextIdx
     where
@@ -133,7 +140,7 @@ lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ check
 lasModify n i = case i of
     WI (LocalGet _) -> calcRIdx
     WI (RefI31 _)   -> calcRIdx
-    _               -> error "lasModify only works with MkNode, LocalGet and RefI31"
+    _               -> error "lasModify only works with MkNode, LocalGet or RefI31"
     where
         calcRIdx = [LocalGet LasIdx, I32Const n, I32Sub, LocalSet ReturnVar]
 

@@ -108,9 +108,13 @@
      (param $las (ref null $stack)) (param $n i32) (result i32)
      ;; function returns the next index of the las we should work with
      ;; n is the index of the las we are currently working with
-        (local $f anyref)
-        (local $g anyref)
         (local $x anyref)
+        (local $y anyref)
+        (local $z anyref)
+        (local $w anyref)
+        (local $v anyref)
+        (local $temp anyref)
+        (local $r anyref)
         (local $ascii i32) ;; i8 can work here too
         ;; get the nth element of the las
         (local.get $las)

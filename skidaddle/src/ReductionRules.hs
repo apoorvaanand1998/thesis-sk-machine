@@ -8,7 +8,8 @@ redRules :: [[MixedInstr]]
 redRules = [ redRuleS, redRuleK, redRuleI, redRuleB, redRuleC,
               redRuleA, redRuleY, redRuleS', redRuleB', redRuleC',
               redRuleP, redRuleR, redRuleO, redRuleU, redRuleZ,
-              redRuleK2, redRuleK3, redRuleK4, redRuleC'B ]
+              redRuleK2, redRuleK3, redRuleK4, redRuleC'B,
+              redRuleADD ]
               
 redRule :: Int -> MixedInstr -> MixedInstr -> [MixedInstr]
 redRule n ln rn = map GI (stores n) ++ modifyAncestor (n-1) ln rn
@@ -155,3 +156,12 @@ redRuleC'B = redRule n ln rn
         n  = 4
         ln = GI (MkNode (CRef (MV X)) (VRef (MV Z)))
         rn = GI (MkNode (CRef (MV Y)) (VRef (MV W)))
+
+redRuleADD :: [MixedInstr]
+redRuleADD = map GI (stores n) ++ primModAncst (n-1) ln rn
+    where
+        n  = 2
+        ln = WI (prim "I")
+        rn = map WI [ LocalGet (MV X), Call FnReduce,
+                      LocalGet (MV Y), Call FnReduce,
+                      I32Add, RefI31' ]

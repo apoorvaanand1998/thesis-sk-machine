@@ -15,12 +15,14 @@ data Instr = I32Const Int
            | StructGet Identifier Identifier
            | StructSet Identifier Identifier
            | RefI31 Int
+           | RefI31' -- called by itself without supplying an arg
            | RefCastI31
            | RefCast Identifier
            | RefTest Identifier
            | I31Get
            | If [Instr]
            | Br Identifier
+           | Call Identifier
            | Nop
            deriving Show
 
@@ -37,12 +39,14 @@ toWat (StructNew i)   = "(struct.new " ++ show i ++ ")"
 toWat (StructGet t f) = "(struct.get " ++ show t ++ " " ++ show f ++ ")"
 toWat (StructSet t f) = "(struct.set " ++ show t ++ " " ++ show f ++ ")"
 toWat (RefI31 i)      = "(i32.const " ++ show i ++ ")" ++ "(ref.i31)"
+toWat RefI31'         = "(ref.i31)"
 toWat RefCastI31      = "(ref.cast i31ref)"
 toWat (RefCast i)     = "(ref.cast (ref null " ++ show i ++ "))"
 toWat (RefTest i)     = "(ref.test (ref null " ++ show i ++ "))"
 toWat I31Get          = "(i31.get_s)"
 toWat (If is)         = "(if (then\n" ++ emit is ++ "))"
 toWat (Br i)          = "(br " ++ show i ++ ")"
+toWat (Call i)        = "(call " ++ show i ++ ")"
 toWat Nop             = "(nop)"
 
 emit :: [Instr] -> String
