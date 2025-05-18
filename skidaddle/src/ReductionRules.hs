@@ -2,13 +2,17 @@ module ReductionRules where
 
 import Choreograph
 import Identifiers
-import WAT ( Instr(LocalGet) )
+import WAT
 
+redRules :: [[MixedInstr]]
+redRules = [ redRuleS, redRuleK, redRuleI, redRuleB, redRuleC,
+              redRuleA, redRuleY, redRuleS', redRuleB', redRuleC',
+              redRuleP, redRuleR, redRuleO, redRuleU, redRuleZ,
+              redRuleK2, redRuleK3, redRuleK4, redRuleC'B ]
+              
 redRule :: Int -> MixedInstr -> MixedInstr -> [MixedInstr]
 redRule n ln rn = map GI (stores n) ++ modifyAncestor (n-1) ln rn
 
--- TODO: Check what happens with S and K
--- mkI wasn't used? I removed it cos it wasn't used, but why wasn't it used?
 redRuleS :: [MixedInstr]
 redRuleS = redRule n ln rn
     where
@@ -85,9 +89,15 @@ redRuleU = redRule n ln rn
         ln = WI (LocalGet (MV Y))
         rn = WI (LocalGet (MV X))
 
--- need to think about this one too
 redRuleY :: [MixedInstr]
-redRuleY = undefined
+redRuleY = map GI (stores 1)                                 ++
+           [ GI (Ancestor 0), ln, GI (NodeSet LeftF), -- first part of modifyAncestor
+             GI (Ancestor 0), WI (LocalSet (MV Y)), -- store the node itself into MV Y
+             GI (Ancestor 0), WI (LocalGet (MV Y)), GI (NodeSet RightF), -- Set right to be Y
+             -- i.e., last two lines are done for self-reference
+             WI (LocalGet LasIdx), WI (LocalSet ReturnVar) ] -- no change in index
+    where
+        ln = WI (LocalGet (MV X))
 
 -- red indeed does rule
 redRuleZ :: [MixedInstr]

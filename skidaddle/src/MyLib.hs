@@ -9,11 +9,17 @@ import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Lazy.IO as TIO
 import qualified Data.ByteString.Lazy as BL
-import System.Directory ( removeFile, renameFile ) 
+import System.Directory ( removeFile, renameFile )
 
-go :: IO ()
-go = do
-    writeComb (Check "S" redRuleS)
+genCombs :: IO ()
+genCombs = mapM_ genComb combCodes
+
+combCodes :: [GraphInstr]
+combCodes = zipWith Check combs redRules
+
+genComb :: GraphInstr -> IO ()
+genComb g = do
+    writeComb g
     rmAndMv
 
 rmAndMv :: IO ()
@@ -26,7 +32,7 @@ rmAndMv = do
 writeComb :: GraphInstr -> IO ()
 writeComb is@(Check c _) = do
     fb <- BL.readFile "../SKeleton.wat"
-    let ft = TE.decodeUtf8 fb 
+    let ft = TE.decodeUtf8 fb
     -- doing it this way because of 
     -- https://hackage-content.haskell.org/package/text-2.1.2/docs/Data-Text-Lazy-IO.html#v:readFile
         untilStart = f1 start ft

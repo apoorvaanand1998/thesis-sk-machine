@@ -130,8 +130,13 @@ lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ check
         checkAndLeft = [LocalGet TempVar, StructGet AppNodeType LeftField, RefTest AppNodeType,
                         If [LocalGet TempVar, StructGet AppNodeType LeftField, RefCast AppNodeType, LocalSet TempVar]]
 
-lasModify n (WI (LocalGet _))   = [LocalGet LasIdx, I32Const n, I32Sub, LocalSet ReturnVar]
-lasModify _ _                   = error "lasModify should only be getting MkNode or LocalGet"
+lasModify n i = case i of
+    WI (LocalGet _) -> calcRIdx
+    WI (RefI31 _)   -> calcRIdx
+    _               -> error "lasModify only works with MkNode, LocalGet and RefI31"
+    where
+        calcRIdx = [LocalGet LasIdx, I32Const n, I32Sub, LocalSet ReturnVar]
+
 
 leftSpineLen :: GraphInstr -> Int
 leftSpineLen (MkNode (CRec g) _) = 1 + leftSpineLen g

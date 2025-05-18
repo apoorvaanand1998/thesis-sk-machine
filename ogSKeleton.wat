@@ -170,15 +170,19 @@
 
 ;; CC Combinator Start
 
+;; CC Combinator End
+
+;; P Combinator Start
+
 ;; P Combinator End
 
 ;; R Combinator Start
 
-;; O Combinator End
+;; R Combinator End
 
 ;; O Combinator Start
 
-;; U Combinator End
+;; O Combinator End
 
 ;; U Combinator Start
 
