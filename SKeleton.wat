@@ -135,7 +135,6 @@
         ;; return new index of las to work with (and also modify las)
 
         (block $combCase (result i32)
-            (loop $switch (result i32)
 ;; S Combinator Start
 (local.get $ascii)
 (i32.const 0)
@@ -1317,7 +1316,6 @@
 (local.set $r)
 (br $combCase)))
 ;; ADD Combinator End
-            )
         )
     )
 

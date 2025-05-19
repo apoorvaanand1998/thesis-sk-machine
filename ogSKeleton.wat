@@ -135,7 +135,6 @@
         ;; return new index of las to work with (and also modify las)
 
         (block $combCase (result i32)
-            (loop $switch (result i32)
 ;; S Combinator Start
 
 ;; S Combinator End
@@ -215,7 +214,6 @@
 ;; ADD Combinator Start
 
 ;; ADD Combinator End
-            )
         )
     )
 
