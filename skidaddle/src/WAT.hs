@@ -24,6 +24,7 @@ data Instr = I32Const Int
            | Br Identifier
            | Call Identifier
            | Nop
+           | Comment String
            deriving Show
 
 toWat :: Instr -> String
@@ -48,6 +49,7 @@ toWat (If is)         = "(if (then\n" ++ emit is ++ "))"
 toWat (Br i)          = "(br " ++ show i ++ ")"
 toWat (Call i)        = "(call " ++ show i ++ ")"
 toWat Nop             = "(nop)"
+toWat (Comment s)     = ";; " ++ s
 
 emit :: [Instr] -> String
 emit is = intercalate "\n" $ map toWat is

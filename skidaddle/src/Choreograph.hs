@@ -105,11 +105,16 @@ stores i =
         concatMap f [0..i-1]
 
 modifyAncestor :: Int -> MixedInstr -> MixedInstr -> [MixedInstr]
-modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
-                         , ln, WI (LocalSet TempVar)
-                         , GI (Ancestor i), rn, GI (NodeSet RightF) ]
+modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF) ]  ++
+                           isTempReq ln                               ++
+                         [ GI (Ancestor i), rn, GI (NodeSet RightF) ]
                           ++
                          map WI (lasModify i ln)
+    where
+        isTempReq :: MixedInstr -> [MixedInstr]
+        isTempReq (WI (RefI31 _))   = []
+        isTempReq (WI (LocalGet _)) = [] -- perhaps it's [] for all WI?
+        isTempReq  x                = [x, WI (LocalSet TempVar)]
 
 -- right now, only for ADD but possibly going to be useful for other primitive ops
 primModAncst :: Int -> MixedInstr -> [MixedInstr] -> [MixedInstr]
