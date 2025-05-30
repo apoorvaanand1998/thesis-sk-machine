@@ -1337,7 +1337,7 @@
         (ref.i31)
         (i32.const 0) ;; name 0
         (struct.new $appNode)
-        (i32.const 1) ;; K
+        (i32.const 2) ;; K
         (ref.i31) 
         (i32.const 1) ;; name 1
         (struct.new $appNode)
