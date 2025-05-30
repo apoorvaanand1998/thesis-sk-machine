@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use list comprehension" #-}
 module Choreograph where
 
 import WAT
@@ -77,7 +79,7 @@ fieldName RightF = RightField
 -- gets the ith ancestor of the top of the LAS
 ancestor :: Int -> [Instr]
 ancestor i =
-        [ LocalGet LASType
+        [ LocalGet LASVar
         , LocalGet LasIdx ]                           ++
         (if i == 0 then [] else [I32Const i, I32Sub]) ++
         [ ArrayGet StackType ]
@@ -105,16 +107,10 @@ stores i =
         concatMap f [0..i-1]
 
 modifyAncestor :: Int -> MixedInstr -> MixedInstr -> [MixedInstr]
-modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF) ]  ++
-                           isTempReq ln                               ++
-                         [ GI (Ancestor i), rn, GI (NodeSet RightF) ]
+modifyAncestor i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
+                         , GI (Ancestor i), rn, GI (NodeSet RightF) ]
                           ++
                          map WI (lasModify i ln)
-    where
-        isTempReq :: MixedInstr -> [MixedInstr]
-        isTempReq (WI (RefI31 _))   = []
-        isTempReq (WI (LocalGet _)) = [] -- perhaps it's [] for all WI?
-        isTempReq  x                = [x, WI (LocalSet TempVar)]
 
 -- right now, only for ADD but possibly going to be useful for other primitive ops
 primModAncst :: Int -> MixedInstr -> [MixedInstr] -> [MixedInstr]
@@ -124,23 +120,35 @@ primModAncst i ln rn = [ GI (Ancestor i), ln, GI (NodeSet LeftF)
                        map WI (lasModify i ln)
 
 lasModify :: Int -> MixedInstr -> [Instr]
-lasModify n (GI g@(MkNode _ _)) = concatMap (\x -> las x ++ arraySetVal ++ checkAndLeft) is ++ nextIdx
+lasModify n (GI g@(MkNode _ _)) = concatMap 
+                                    (\x -> las x ++ goLeftAndSet x (leftSpineLen g))
+                                    is
+                                  ++
+                                    nextIdx
     where
-        nextIdx = [LocalGet LasIdx, I32Const n, I32Sub, I32Const (leftSpineLen g), I32Add, LocalSet ReturnVar]
-
-        is = [1..leftSpineLen g] -- you got from (lasLength - redRuleN + 1) to (lasLength - redRuleN + lefSpineLenOfNewNode)
-
+        -- the index of the LAS that we want to modify
         las :: Int -> [Instr]
-        las i = [LocalGet LASType, LocalGet LasIdx, I32Const n, I32Sub, I32Const i, I32Add]
+        las i = [ LocalGet LASVar, LocalGet LasIdx
+                , I32Const n, I32Sub
+                , I32Const i, I32Add ]
 
-        -- the assumption of the below functions is that there exists a variable 
-        -- called temp, that stores the value of ln in it
-        arraySetVal :: [Instr]
-        arraySetVal = [LocalGet TempVar, ArraySet StackType]
+        goLeftAndSet :: Int -> Int -> [Instr]
+        goLeftAndSet i lsLen = ( if i == 1 then ancestor n else [LocalGet TempVar] ) 
+                                 ++
+                               [ StructGet AppNodeType LeftField
+                               , RefCast AppNodeType ]
+                                 ++
+                               ( if i < lsLen then [LocalTee TempVar] else [] )
+                                 ++
+                               [ ArraySet StackType ]
 
-        checkAndLeft :: [Instr]
-        checkAndLeft = [LocalGet TempVar, StructGet AppNodeType LeftField, RefTest AppNodeType,
-                        If [LocalGet TempVar, StructGet AppNodeType LeftField, RefCast AppNodeType, LocalSet TempVar]]
+        nextIdx = [ LocalGet LasIdx
+                  , I32Const n, I32Sub
+                  , I32Const (leftSpineLen g), I32Add
+                  , LocalSet ReturnVar ]
+
+        is = [1..(leftSpineLen g)]
+        
 
 lasModify n i = case i of
     WI (LocalGet _) -> calcRIdx

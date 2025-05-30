@@ -1,0 +1,4 @@
+- [ ] Remove temp variable, just use index
+
+Wishlist
+- [ ] Create a common LAS for the whole graph instead of generating a new LAS for every primitive operation

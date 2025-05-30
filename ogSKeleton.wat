@@ -287,7 +287,7 @@
                 ;; (struct.get $comb $asciiTag)
                 (ref.cast i31ref)
                 (i31.get_s)
-                (i32.const 73)
+                (i32.const 2)
                 (i32.eq)
                 ;; checking if it is an I
 

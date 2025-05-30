@@ -3,7 +3,7 @@ module Identifiers where
 
 data MetaVars = X | Y | Z | W | V deriving Enum
 
-data Identifier = LASType | LasIdx | StackType | AppNodeType 
+data Identifier = LASVar | LasIdx | StackType | AppNodeType 
                 | LeftField | RightField | LocalCombIdx -- currently "$ascii", but that doesn't fit anymore
                 | CombCase | TempVar | ReturnVar
                 | MV MetaVars | FnReduce
@@ -18,7 +18,7 @@ instance Show MetaVars where
 
 instance Show Identifier where
     show :: Identifier -> String
-    show LASType      = "$las"
+    show LASVar       = "$las"
     show LasIdx       = "$n"
     show StackType    = "$stack"
     show AppNodeType  = "$appNode"

@@ -9,6 +9,7 @@ data Instr = I32Const Int
            | I32Add
            | LocalGet Identifier
            | LocalSet Identifier
+           | LocalTee Identifier
            | ArrayGet Identifier
            | ArraySet Identifier
            | StructNew Identifier
@@ -34,6 +35,7 @@ toWat I32Sub          = "(i32.sub)"
 toWat I32Add          = "(i32.add)"
 toWat (LocalGet i)    = "(local.get " ++ show i ++ ")"
 toWat (LocalSet i)    = "(local.set " ++ show i ++ ")"
+toWat (LocalTee i)    = "(local.tee " ++ show i ++ ")"
 toWat (ArrayGet i)    = "(array.get " ++ show i ++ ")"
 toWat (ArraySet i)    = "(array.set " ++ show i ++ ")"
 toWat (StructNew i)   = "(struct.new " ++ show i ++ ")"
