@@ -1331,17 +1331,17 @@
     (func $main (export "main") (result i32)
         (local $an (ref null $appNode))
         (local $n i32)
-        (i32.const 0) ;; S
+        (i32.const 1) ;; S
         (ref.i31)
-        (i32.const 1) ;; K
+        (i32.const 2) ;; K
         (ref.i31)
         (i32.const 0) ;; name 0
         (struct.new $appNode)
-        (i32.const 2) ;; K
+        (i32.const 42) ;; K
         (ref.i31) 
         (i32.const 1) ;; name 1
         (struct.new $appNode)
-        (i32.const 42) ;; constant 42
+        (i32.const 45) ;; constant 42
         (ref.i31)
         (i32.const 2) ;; name 2
         (struct.new $appNode)

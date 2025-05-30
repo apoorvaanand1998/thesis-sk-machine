@@ -1,4 +1,4 @@
--- 1 SKK
+-- 1 SKK = I
 
 (i32.const 0) ;; S
 (ref.i31)
@@ -15,7 +15,7 @@
 (i32.const 2) ;; name 2
 (struct.new $appNode)
 
--- 2 SKI
+-- 2 SKI = I
 
 (i32.const 0) ;; S
 (ref.i31)
@@ -32,4 +32,19 @@
 (i32.const 2) ;; name 2
 (struct.new $appNode)
 
--- 3 
+-- 3 KIxy = y
+
+(i32.const 1) ;; S
+(ref.i31)
+(i32.const 2) ;; K
+(ref.i31)
+(i32.const 0) ;; name 0
+(struct.new $appNode)
+(i32.const 42) ;; K
+(ref.i31) 
+(i32.const 1) ;; name 1
+(struct.new $appNode)
+(i32.const 45) ;; constant 42
+(ref.i31)
+(i32.const 2) ;; name 2
+(struct.new $appNode)
